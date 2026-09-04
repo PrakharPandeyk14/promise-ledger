@@ -44,8 +44,12 @@ class PromiseLedgerService:
 
     def __init__(self, database_path: Path = DATABASE_PATH):
         self.database_path = Path(database_path)
+        self._snapshot_cache: PortfolioSnapshot | None = None
 
     def snapshot(self) -> PortfolioSnapshot:
+        if self._snapshot_cache is not None:
+            return self._snapshot_cache
+
         connection = connect(self.database_path)
         try:
             feature_rows = build_feature_dataset(connection)
@@ -73,7 +77,9 @@ class PromiseLedgerService:
         current = [row for row in feature_rows if row["target_broken"] is None]
         policy = MerchantPolicy.from_row(policy_row)
         if not current:
-            return PortfolioSnapshot([], {}, {}, invoices, promises, {}, {}, {}, policy)
+            snapshot = PortfolioSnapshot([], {}, {}, invoices, promises, {}, {}, {}, policy)
+            self._snapshot_cache = snapshot
+            return snapshot
 
         model = RandomForestModel(random_state=SEED).fit(
             feature_matrix(resolved),
@@ -98,7 +104,7 @@ class PromiseLedgerService:
             invoice_id: invoice_actions[-1]["action_date"] if invoice_actions else None
             for invoice_id, invoice_actions in actions_by_invoice.items()
         }
-        return PortfolioSnapshot(
+        snapshot = PortfolioSnapshot(
             opportunities=opportunities,
             scores={score.promise_id: score for score in scores},
             rows={int(row["promise_id"]): row for row in current},
@@ -109,6 +115,12 @@ class PromiseLedgerService:
             latest_action_by_invoice=latest_action,
             policy=policy,
         )
+        self._snapshot_cache = snapshot
+        return snapshot
+
+    def invalidate_snapshot(self) -> None:
+        """Clear the cached snapshot after an external database change."""
+        self._snapshot_cache = None
 
     def orchestrate(self, snapshot: PortfolioSnapshot, opportunity: RecoveryOpportunity):
         row = snapshot.rows[opportunity.promise_id]

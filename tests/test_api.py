@@ -3,6 +3,7 @@ import unittest
 from fastapi.testclient import TestClient
 
 from promise_ledger.api import create_app
+from promise_ledger.api.service import PromiseLedgerService
 from promise_ledger.config import DATABASE_PATH
 from promise_ledger.db.connection import connect
 
@@ -19,6 +20,19 @@ class PromiseLedgerApiTests(unittest.TestCase):
         response = self.client.get("/health")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"status": "ok"})
+
+    def test_service_reuses_snapshot_until_invalidated(self):
+        service = PromiseLedgerService(DATABASE_PATH)
+        first = service.snapshot()
+        second = service.snapshot()
+
+        self.assertIs(first, second)
+        self.assertEqual(first.opportunities, second.opportunities)
+
+        service.invalidate_snapshot()
+        refreshed = service.snapshot()
+        self.assertIsNot(first, refreshed)
+        self.assertEqual(first.opportunities, refreshed.opportunities)
 
     def test_frontend_is_served_by_api(self):
         index = self.client.get("/")
