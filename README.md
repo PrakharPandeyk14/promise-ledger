@@ -348,6 +348,106 @@ The orchestration and portfolio evaluation layers use only the existing
 records are currently in-memory; a production system would add an append-only
 audit log table and durable persistence.
 
+### Day 5 Step 2: FastAPI Backend
+
+The read-only FastAPI application in `src/promise_ledger/api/` exposes the
+existing scoring, prioritization, recovery, guardrail, and portfolio layers
+without changing the database or performing real recovery actions. Run it from
+the repository root with:
+
+```powershell
+$env:PYTHONPATH = "src"
+uvicorn promise_ledger.api:app --reload
+```
+
+Available endpoints are `GET /health`, `GET /portfolio/summary`,
+`GET /opportunities`, `GET /opportunities/{promise_id}`, and
+`POST /opportunities/{promise_id}/evaluate`. Evaluation records only the
+existing simulated audit result; it does not send messages, collect payments,
+or modify ledger records.
+
+### Day 5 Step 3: Frontend Dashboard
+
+The Promise Ledger frontend (`frontend/`) is a professional B2B receivables recovery dashboard built with vanilla HTML, CSS, and JavaScript. It provides a clean, judge-friendly interface for portfolio oversight and opportunity evaluation.
+
+**Key Features:**
+
+- **Portfolio Overview**: Total outstanding, expected recovery, at-risk count, and recovery potential
+- **Priority Distribution**: Visual breakdown of opportunities by priority tier (HIGH/MEDIUM/LOW)
+- **At-Risk Opportunities Table**: Sortable table showing promise ID, customer ID, invoice ID, outstanding amount, expected recovery, break probability, credibility score, priority tier, and action buttons
+- **Opportunity Detail Panel**: Comprehensive view with promise/invoice details, risk metrics, and historical context
+- **Visual Risk Signals**: Color-coded risk levels (HIGH/MEDIUM/LOW) and credibility indicators
+- **Guardrail Indicators**: Display of ALLOW/BLOCK/OVERRIDE statuses with reason codes
+- **Evaluation Results**: Full audit trail and recommended actions with explanations
+
+**Architecture:**
+
+The frontend includes a clean API client abstraction layer (`frontend/js/api-client.js`) that mirrors the backend endpoints:
+
+- `PromiseLedgerAPI.getHealth()` → `GET /health`
+- `PromiseLedgerAPI.getPortfolioSummary()` → `GET /portfolio/summary`
+- `PromiseLedgerAPI.getOpportunities()` → `GET /opportunities`
+- `PromiseLedgerAPI.getOpportunityDetail(promise_id)` → `GET /opportunities/{promise_id}`
+- `PromiseLedgerAPI.evaluateOpportunity(promise_id)` → `POST /opportunities/{promise_id}/evaluate`
+
+**Utility Functions** (`frontend/js/utils.js`):
+
+- Currency formatting as Indian Rupees (₹)
+- Percentage and score formatting
+- Risk and credibility classification
+- Priority badge styling
+- Date formatting and validation
+- Action label conversion
+
+**Styling:**
+
+Professional B2B color scheme with:
+
+- Dark navy primary (#1a1a2e)
+- Deep blue secondary (#0f3460)
+- Risk-level indicators (red/orange/green)
+- Responsive grid layout
+- Clean typography and spacing
+
+**Testing:**
+
+Frontend validation tests in `frontend/tests/test_frontend.js` verify:
+
+- Utility function behavior and edge cases
+- API client structure and validation
+- File existence and syntax correctness
+- HTML element structure
+- CSS class coverage
+
+Run tests with:
+
+```powershell
+node frontend/tests/test_frontend.js
+```
+
+### Day 5 Step 4: Local Frontend/API Integration
+
+FastAPI serves the existing `frontend/` directory at `/`, so the dashboard uses the live API on the same local origin without CORS configuration. Start the application from the repository root with:
+
+```powershell
+$env:PYTHONPATH = "src"
+.\.venv\Scripts\python.exe -m uvicorn promise_ledger.api.app:app --host 127.0.0.1 --port 8000
+```
+
+Open `http://localhost:8000/` in Chrome. The dashboard loads health, portfolio, and opportunity data from the API and displays evaluation recommendations, guardrail reasons, and simulated audit details.
+
+The integration preserves the existing database schema, generated data, and recovery logic. Evaluation remains deterministic and in-memory; it does not send messages, process payments, or write audit records.
+
+The Step 3 implementation includes:
+
+- ✅ Complete dashboard UI and styling
+- ✅ API client abstraction layer
+- ✅ Utility and formatting functions
+- ✅ Local structure and validation tests
+- ✅ Day 5 Step 4: Live API wiring
+
+See `frontend/README.md` for detailed frontend documentation.
+
 ### Testing
 
 Comprehensive test suite in `tests/test_orchestration.py` validates:
@@ -365,3 +465,11 @@ Comprehensive test suite in `tests/test_orchestration.py` validates:
 - No database mutations occur
 - Empty portfolio handling
 - Mixed portfolio handling (various outcomes in one run)
+
+Frontend tests in `frontend/tests/test_frontend.js` validate:
+
+- Utility functions (formatting, validation, helpers)
+- API client structure and error handling
+- HTML structure and required elements
+- CSS styling and responsive design
+- JavaScript syntax correctness

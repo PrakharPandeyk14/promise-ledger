@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Promise Ledger - B2B Recovery Dashboard</title>
+    <link rel="stylesheet" href="css/dashboard.css" />
+  </head>
+  <body>
+    <div class="app">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-content">
+          <h1 class="logo">Promise Ledger</h1>
+          <p class="tagline">B2B Receivables Recovery & Risk Management</p>
+        </div>
+        <div class="health-indicator" id="healthIndicator">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="healthStatus">Checking...</span>
+        </div>
+      </header>
+
+      <!-- Main Container -->
+      <div class="main-container">
+        <!-- Left: Overview & Table -->
+        <div class="left-panel">
+          <!-- Portfolio Overview Section -->
+          <section class="portfolio-overview">
+            <h2>Portfolio Overview</h2>
+            <div class="metrics-grid">
+              <div class="metric-card">
+                <div class="metric-label">Money at Risk (Outstanding)</div>
+                <div class="metric-value" id="totalOutstanding">₹ --</div>
+                <div class="metric-subtext">At promise creation</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Expected Recovery</div>
+                <div class="metric-value" id="expectedRecovery">₹ --</div>
+                <div class="metric-subtext">
+                  Weighted by recovery probability
+                </div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">At-Risk Opportunities</div>
+                <div class="metric-value" id="atRiskCount">--</div>
+                <div class="metric-subtext">Unresolved promises</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Expected Recovery Rate</div>
+                <div class="metric-value" id="recoveryRate">--%</div>
+                <div class="metric-subtext">Expected vs. Outstanding</div>
+              </div>
+            </div>
+
+            <!-- Priority Tiers Distribution -->
+            <div class="priority-distribution">
+              <h3>Priority Distribution</h3>
+              <div class="tier-bars">
+                <div class="tier-bar high">
+                  <span class="tier-label">HIGH</span>
+                  <span class="tier-count" id="tierHigh">0</span>
+                </div>
+                <div class="tier-bar medium">
+                  <span class="tier-label">MEDIUM</span>
+                  <span class="tier-count" id="tierMedium">0</span>
+                </div>
+                <div class="tier-bar low">
+                  <span class="tier-label">LOW</span>
+                  <span class="tier-count" id="tierLow">0</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Opportunities Table Section -->
+          <section class="opportunities-section">
+            <h2>At-Risk Opportunities</h2>
+            <div class="table-container">
+              <table class="opportunities-table">
+                <thead>
+                  <tr>
+                    <th>Promise ID</th>
+                    <th>Customer ID</th>
+                    <th>Invoice ID</th>
+                    <th>Outstanding</th>
+                    <th>Expected Recovery</th>
+                    <th>Break Probability</th>
+                    <th>Credibility Score / 100</th>
+                    <th>Priority</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="opportunitiesTableBody">
+                  <tr class="loading">
+                    <td colspan="9">Loading opportunities...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <!-- Right: Detail Panel -->
+        <aside class="right-panel">
+          <div class="detail-panel" id="detailPanel">
+            <div class="detail-empty">
+              <div class="empty-icon">📋</div>
+              <p>Select an opportunity to view details</p>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- Script imports (API client, utilities, and app logic) -->
+    <script src="js/utils.js"></script>
+    <script src="js/api-client.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,190 @@
+# Promise Ledger Frontend Dashboard
+
+A professional B2B receivables recovery dashboard for the Promise Ledger API.
+
+## Overview
+
+The Promise Ledger Frontend is a clean, judge-friendly web interface for managing promise-based receivables recovery opportunities. It displays portfolio metrics, visualizes at-risk opportunities, and enables evaluation of individual recovery scenarios.
+
+## Structure
+
+```
+frontend/
+├── index.html              # Main dashboard HTML
+├── css/
+│   └── dashboard.css       # Complete styling for dashboard
+├── js/
+│   ├── utils.js           # Utility functions (formatting, validation, helpers)
+│   ├── api-client.js      # API client layer (abstraction for backend communication)
+│   └── app.js             # Main application logic (rendering, interactions)
+└── tests/
+    └── test_frontend.js   # Frontend validation tests
+```
+
+## Features
+
+### Portfolio Overview
+
+- **Total Outstanding**: Outstanding amount at promise creation
+- **Expected Recovery**: Weighted by recovery probability
+- **At-Risk Opportunities**: Count of unresolved promises
+- **Expected Recovery Rate**: Expected recovery as a percentage of money at risk
+
+### Priority Distribution
+
+Visual breakdown of opportunities by priority tier (HIGH/MEDIUM/LOW)
+
+### At-Risk Opportunities Table
+
+Searchable, sortable table showing:
+
+- Promise ID
+- Customer ID
+- Invoice ID
+- Outstanding Amount (₹)
+- Expected Recovery (₹)
+- Break Probability
+- Promise Credibility Score (0-100)
+- Priority Tier
+- Quick action button
+
+### Opportunity Detail Panel
+
+When selecting an opportunity:
+
+- Key metrics and risk assessment
+- Promise and invoice details
+- Risk analysis with historical context
+- Evaluation button to get recommended action
+- Guardrail status and reason codes
+- Full audit trail
+
+### Visual Indicators
+
+- **Risk Levels**: HIGH (red), MEDIUM (orange), LOW (green)
+- **Credibility Scores**: High (green), Medium (orange), Low (red)
+- **Priority Badges**: Color-coded by tier
+- **Guardrail Status**: ALLOW (green), BLOCK (red), OVERRIDE (yellow)
+
+## Technology Stack
+
+- **HTML5**: Semantic markup
+- **CSS3**: Modern styling with CSS Grid/Flexbox
+- **Vanilla JavaScript (ES6+)**: No build tools or frameworks required
+- **Fetch API**: For backend communication
+
+## API Client
+
+The frontend includes a structured API client layer (`js/api-client.js`) that wraps all backend endpoints:
+
+```javascript
+// Initialize
+const api = initializeAPIClient("http://localhost:8000");
+
+// Check health
+const health = await api.getHealth();
+
+// Get portfolio metrics
+const portfolio = await api.getPortfolioSummary();
+
+// Get all opportunities
+const opportunities = await api.getOpportunities();
+
+// Get opportunity details
+const detail = await api.getOpportunityDetail(promiseId);
+
+// Evaluate opportunity
+const evaluation = await api.evaluateOpportunity(promiseId);
+```
+
+## Utility Functions
+
+The `js/utils.js` module provides:
+
+- **formatCurrency(amount)** - Format as Indian Rupees (₹)
+- **formatPercentage(value)** - Format decimals as percentages
+- **formatScore(value)** - Format as 0-100 score
+- **getRiskClass(probability)** - Get CSS class for risk level
+- **getRiskLabel(probability)** - Get human-readable risk label
+- **getCredibilityClass(score)** - Get CSS class for credibility
+- **getCredibilityLabel(score)** - Get human-readable credibility label
+- **getPriorityClass(tier)** - Get CSS class for priority badge
+- **formatDate(dateStr)** - Format ISO dates to readable format
+- **getActionLabel(action)** - Convert action codes to labels
+- **isValidPromiseId(id)** - Validate promise ID format
+- **debounce(func, wait)** - Debounce function calls
+- **deepClone(obj)** - Deep copy objects
+
+## Testing
+
+Frontend validation tests are included in `tests/test_frontend.js`:
+
+```powershell
+# Run frontend tests
+$env:PYTHONPATH = "src"
+node frontend/tests/test_frontend.js
+```
+
+Tests validate:
+
+- Utility function behavior
+- API client structure and validation
+- File existence and content
+- HTML structure and required elements
+- CSS styling coverage
+- JavaScript syntax correctness
+
+## Styling
+
+The dashboard uses a professional B2B color scheme:
+
+- **Primary**: Dark navy (#1a1a2e)
+- **Secondary**: Deep blue (#0f3460)
+- **Accent**: Coral red (#e94560)
+- **Risk HIGH**: Red (#d32f2f)
+- **Risk MEDIUM**: Orange (#f57c00)
+- **Risk LOW**: Green (#388e3c)
+
+Responsive design supports laptop screens (1200px+). The dashboard is served by FastAPI and uses the live backend API.
+
+## Usage
+
+1. Start the backend API server:
+
+   ```powershell
+   $env:PYTHONPATH = "src"
+   python -m uvicorn promise_ledger.api.app:app --reload --port 8000
+   ```
+
+2. Open http://localhost:8000/ in a web browser
+
+3. The dashboard will:
+   - Check backend health
+   - Load portfolio metrics
+   - Display opportunities in a table
+   - Allow selection of individual opportunities for detailed analysis
+   - Support evaluation of recovery scenarios
+
+## Demo Data
+
+The dashboard displays synthetic demo data generated by the backend. All customer names, invoice amounts, and promise outcomes are fabricated for development and testing purposes.
+
+## Current Scope
+
+The frontend is wired to the live backend API. The current implementation includes:
+
+- ✅ Dashboard UI structure and styling
+- ✅ API client abstraction layer
+- ✅ Local demo with mock data patterns
+- ✅ FastAPI serves the dashboard and API from one local origin
+
+## Future Enhancements (Post-Step 3)
+
+- Export/reporting functionality
+- Advanced filtering and search
+- Batch evaluation of opportunities
+- Custom dashboard layouts
+- User preferences and saved views
+- Export to CSV/PDF
+- Real-time updates via WebSocket
+- Mobile-optimized responsive design

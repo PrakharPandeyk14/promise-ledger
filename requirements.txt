@@ -1,1 +1,4 @@
-# Standard-library implementation; no third-party runtime dependencies.
+# Runtime dependencies for the API layer.
+fastapi
+uvicorn
+httpx

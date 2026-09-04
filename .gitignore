@@ -1,6 +1,8 @@
 __pycache__/
 .pytest_cache/
 *.py[cod]
+*.pyc
+.venv/
 data/*.db
 .git.broken-backup/
 
