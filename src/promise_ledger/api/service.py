@@ -144,3 +144,15 @@ class PromiseLedgerService:
         return PortfolioEvaluator.evaluate([
             self.orchestrate(snapshot, opportunity) for opportunity in snapshot.opportunities
         ])
+
+    def evaluate_experiment(self, snapshot: PortfolioSnapshot):
+        from promise_ledger.evaluation.experiment import evaluate_experiment
+
+        results = [
+            self.orchestrate(snapshot, opportunity) for opportunity in snapshot.opportunities
+        ]
+        return evaluate_experiment(
+            results,
+            snapshot.rows,
+            evaluation_date=SIMULATION_DATE.isoformat(),
+        )

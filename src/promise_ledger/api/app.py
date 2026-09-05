@@ -11,6 +11,7 @@ from promise_ledger.config import DATABASE_PATH
 
 from .models import (
     EvaluationResponse,
+    ExperimentMetricsResponse,
     HealthResponse,
     OpportunityDetailResponse,
     OpportunityResponse,
@@ -19,9 +20,21 @@ from .models import (
 from .service import PromiseLedgerService
 
 
-def _opportunity_response(snapshot, opportunity) -> OpportunityResponse:
+def _opportunity_response(
+    snapshot,
+    opportunity,
+    recommendation: str | None = None,
+    final_action: str | None = None,
+    guardrail_status: str | None = None,
+) -> OpportunityResponse:
     score = snapshot.scores[opportunity.promise_id]
-    return OpportunityResponse(**opportunity.__dict__, explanation=list(score.explanation))
+    return OpportunityResponse(
+        **opportunity.__dict__,
+        explanation=list(score.explanation),
+        recommended_action=recommendation,
+        final_action=final_action,
+        guardrail_status=guardrail_status,
+    )
 
 
 def _model_as_dict(model):
@@ -44,6 +57,7 @@ def create_app(database_path: Path = DATABASE_PATH) -> FastAPI:
         tiers = {"HIGH": 0, "MEDIUM": 0, "LOW": 0}
         for opportunity in snapshot.opportunities:
             tiers[opportunity.priority_tier] = tiers.get(opportunity.priority_tier, 0) + 1
+        exp_metrics = service.evaluate_experiment(snapshot)
         return PortfolioSummaryResponse(
             **metrics.as_dict(),
             priority_tiers=tiers,
@@ -52,12 +66,32 @@ def create_app(database_path: Path = DATABASE_PATH) -> FastAPI:
                 "BLOCK": metrics.guardrail_block_count,
                 "OVERRIDE": metrics.guardrail_override_count,
             },
+            experiment=exp_metrics.as_dict(),
         )
+
+    @api.get("/evaluation/experiment", response_model=ExperimentMetricsResponse)
+    def evaluation_experiment() -> ExperimentMetricsResponse:
+        snapshot = service.snapshot()
+        exp_metrics = service.evaluate_experiment(snapshot)
+        return ExperimentMetricsResponse(**exp_metrics.as_dict())
 
     @api.get("/opportunities", response_model=list[OpportunityResponse])
     def opportunities() -> list[OpportunityResponse]:
         snapshot = service.snapshot()
-        return [_opportunity_response(snapshot, item) for item in snapshot.opportunities]
+        orchestrations = {
+            opp.promise_id: service.orchestrate(snapshot, opp)
+            for opp in snapshot.opportunities
+        }
+        return [
+            _opportunity_response(
+                snapshot,
+                item,
+                recommendation=orchestrations[item.promise_id].decision.recommended_action.value,
+                final_action=orchestrations[item.promise_id].execution.guardrail.final_action.value,
+                guardrail_status=orchestrations[item.promise_id].execution.guardrail.status.value,
+            )
+            for item in snapshot.opportunities
+        ]
 
     @api.get("/opportunities/{promise_id}", response_model=OpportunityDetailResponse)
     def opportunity_detail(promise_id: int) -> OpportunityDetailResponse:
@@ -67,10 +101,18 @@ def create_app(database_path: Path = DATABASE_PATH) -> FastAPI:
         )
         if opportunity is None:
             raise HTTPException(status_code=404, detail="Unresolved opportunity not found")
+        orch = service.orchestrate(snapshot, opportunity)
+        opp_resp = _opportunity_response(
+            snapshot,
+            opportunity,
+            recommendation=orch.decision.recommended_action.value,
+            final_action=orch.execution.guardrail.final_action.value,
+            guardrail_status=orch.execution.guardrail.status.value,
+        )
         invoice = snapshot.invoices[opportunity.invoice_id]
         promise = snapshot.promises[promise_id]
         return OpportunityDetailResponse(
-            **_model_as_dict(_opportunity_response(snapshot, opportunity)),
+            **_model_as_dict(opp_resp),
             promise_created_date=promise["promise_created_date"],
             promised_payment_date=promise["promised_payment_date"],
             promised_amount=float(promise["promised_amount"]),

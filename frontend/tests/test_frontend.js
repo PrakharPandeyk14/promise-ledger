@@ -48,17 +48,34 @@ function assertFalse(value, message) {
     assert(value === false, message || `Expected false, got ${value}`);
 }
 
+const fs = require('fs');
+const path = require('path');
+
+function resolveFrontendPath(relPath) {
+    const clean = relPath.replace(/^frontend\//, '');
+    const candidates = [
+        path.join(__dirname, '..', clean),
+        path.join(__dirname, clean),
+        path.join(__dirname, '..', relPath),
+        path.join(__dirname, '../..', relPath)
+    ];
+    for (const c of candidates) {
+        if (fs.existsSync(c)) return c;
+    }
+    return candidates[0];
+}
+
 // ============== UTILITY FUNCTION TESTS ==============
 
 test('formatCurrency - formats numbers as Indian Rupees', () => {
-    const utils = require('./js/utils.js');
+    const utils = require(resolveFrontendPath('js/utils.js'));
     assertEqual(utils.formatCurrency(1000), '₹ 1,000.00', 'Should format 1000 as ₹ 1,000.00');
     assertEqual(utils.formatCurrency(1000000), '₹ 10,00,000.00', 'Should use Indian number format');
     assertEqual(utils.formatCurrency(0), '₹ 0.00', 'Should format zero');
 });
 
 test('formatCurrency - handles null/undefined', () => {
-    const utils = require('./js/utils.js');
+    const utils = require(resolveFrontendPath('js/utils.js'));
     assertEqual(utils.formatCurrency(null), '₹ --', 'Should return ₹ -- for null');
     assertEqual(utils.formatCurrency(undefined), '₹ --', 'Should return ₹ -- for undefined');
 });
@@ -133,16 +150,16 @@ test('getActionLabel - converts action codes to labels', () => {
 test('debounce - debounces function calls', (done) => {
     const utils = require('./js/utils.js');
     let callCount = 0;
-    
+
     const fn = () => { callCount++; };
     const debounced = utils.debounce(fn, 50);
-    
+
     debounced();
     debounced();
     debounced();
-    
+
     assertEqual(callCount, 0, 'Should not call immediately');
-    
+
     setTimeout(() => {
         assertEqual(callCount, 1, 'Should call once after debounce period');
         done();
@@ -153,10 +170,10 @@ test('deepClone - creates independent copy of object', () => {
     const utils = require('./js/utils.js');
     const original = { a: 1, b: { c: 2 } };
     const clone = utils.deepClone(original);
-    
+
     clone.a = 99;
     clone.b.c = 99;
-    
+
     assertEqual(original.a, 1, 'Original should not be modified');
     assertEqual(original.b.c, 2, 'Original nested should not be modified');
 });
@@ -164,15 +181,15 @@ test('deepClone - creates independent copy of object', () => {
 // ============== API CLIENT TESTS ==============
 
 test('PromiseLedgerAPI - initializes with base URL', () => {
-    const { PromiseLedgerAPI } = require('./js/api-client.js');
+    const { PromiseLedgerAPI } = require(resolveFrontendPath('js/api-client.js'));
     const api = new PromiseLedgerAPI('http://example.com');
     assertEqual(api.baseUrl, 'http://example.com', 'Should set base URL');
 });
 
 test('PromiseLedgerAPI - validates promise ID in getOpportunityDetail', () => {
-    const { PromiseLedgerAPI } = require('./js/api-client.js');
+    const { PromiseLedgerAPI } = require(resolveFrontendPath('js/api-client.js'));
     const api = new PromiseLedgerAPI();
-    
+
     try {
         api.getOpportunityDetail(-1);
         assert(false, 'Should throw error for invalid ID');
@@ -182,9 +199,9 @@ test('PromiseLedgerAPI - validates promise ID in getOpportunityDetail', () => {
 });
 
 test('PromiseLedgerAPI - validates promise ID in evaluateOpportunity', () => {
-    const { PromiseLedgerAPI } = require('./js/api-client.js');
+    const { PromiseLedgerAPI } = require(resolveFrontendPath('js/api-client.js'));
     const api = new PromiseLedgerAPI();
-    
+
     try {
         api.evaluateOpportunity('abc');
         assert(false, 'Should throw error for invalid ID');
@@ -194,14 +211,14 @@ test('PromiseLedgerAPI - validates promise ID in evaluateOpportunity', () => {
 });
 
 test('initializeAPIClient - creates singleton instance', () => {
-    const { initializeAPIClient, getAPIClient } = require('./js/api-client.js');
-    
+    const { initializeAPIClient, getAPIClient } = require(resolveFrontendPath('js/api-client.js'));
+
     // Reset global state
     global.promiseLedgerAPI = null;
-    
+
     const api1 = initializeAPIClient('http://test.com');
     const api2 = getAPIClient();
-    
+
     assertEqual(api1, api2, 'Should return same instance');
     assertEqual(api1.baseUrl, 'http://test.com', 'Should preserve URL');
 });
@@ -209,31 +226,26 @@ test('initializeAPIClient - creates singleton instance', () => {
 // ============== INTEGRATION TESTS ==============
 
 test('Frontend files exist and are valid', () => {
-    const fs = require('fs');
-    const path = require('path');
-    
     const files = [
-        'frontend/index.html',
-        'frontend/css/dashboard.css',
-        'frontend/js/utils.js',
-        'frontend/js/api-client.js',
-        'frontend/js/app.js'
+        'index.html',
+        'css/dashboard.css',
+        'js/utils.js',
+        'js/api-client.js',
+        'js/app.js'
     ];
-    
+
     for (const file of files) {
-        const fullPath = path.join(__dirname, '..', file);
+        const fullPath = resolveFrontendPath(file);
         assertTrue(fs.existsSync(fullPath), `File should exist: ${file}`);
-        
+
         const content = fs.readFileSync(fullPath, 'utf-8');
         assertTrue(content.length > 0, `File should not be empty: ${file}`);
     }
 });
 
 test('HTML contains required dashboard sections', () => {
-    const fs = require('fs');
-    const path = require('path');
-    const html = fs.readFileSync(path.join(__dirname, '..', 'frontend/index.html'), 'utf-8');
-    
+    const html = fs.readFileSync(resolveFrontendPath('index.html'), 'utf-8');
+
     assertTrue(html.includes('portfolio-overview'), 'Should contain portfolio overview section');
     assertTrue(html.includes('opportunities-table'), 'Should contain opportunities table');
     assertTrue(html.includes('detail-panel'), 'Should contain detail panel');
@@ -248,10 +260,8 @@ test('HTML contains required dashboard sections', () => {
 });
 
 test('CSS contains required styling classes', () => {
-    const fs = require('fs');
-    const path = require('path');
-    const css = fs.readFileSync(path.join(__dirname, '..', 'frontend/css/dashboard.css'), 'utf-8');
-    
+    const css = fs.readFileSync(resolveFrontendPath('css/dashboard.css'), 'utf-8');
+
     assertTrue(css.includes('.metrics-grid'), 'Should style metrics grid');
     assertTrue(css.includes('.opportunities-table'), 'Should style table');
     assertTrue(css.includes('.detail-panel'), 'Should style detail panel');
@@ -261,18 +271,15 @@ test('CSS contains required styling classes', () => {
 });
 
 test('JavaScript files have no syntax errors', () => {
-    const fs = require('fs');
-    const path = require('path');
-    
     const jsFiles = [
-        'frontend/js/utils.js',
-        'frontend/js/api-client.js'
+        'js/utils.js',
+        'js/api-client.js'
     ];
-    
+
     for (const file of jsFiles) {
-        const fullPath = path.join(__dirname, '..', file);
+        const fullPath = resolveFrontendPath(file);
         const content = fs.readFileSync(fullPath, 'utf-8');
-        
+
         try {
             new Function(content);
             assertTrue(true, `${file} is valid JavaScript`);
@@ -283,9 +290,7 @@ test('JavaScript files have no syntax errors', () => {
 });
 
 test('Dashboard evaluation displays the complete demo result', () => {
-    const fs = require('fs');
-    const path = require('path');
-    const app = fs.readFileSync(path.join(__dirname, '..', 'frontend/js/app.js'), 'utf-8');
+    const app = fs.readFileSync(resolveFrontendPath('js/app.js'), 'utf-8');
 
     assertTrue(app.includes('Recommended Action'), 'Should display the recommendation');
     assertTrue(app.includes('Promise Credibility Score'), 'Should display promise credibility');
@@ -298,12 +303,31 @@ test('Dashboard evaluation displays the complete demo result', () => {
     assertTrue(app.includes('formatCurrency(evaluation.expected_recovery)'), 'Should display expected recovery in rupees');
 });
 
+test('Task 3 UX - EVALUATE & GET RECOMMENDATION is primary action with loading state and decision chain', () => {
+    const app = fs.readFileSync(resolveFrontendPath('js/app.js'), 'utf-8');
+
+    // Primary action button
+    assertTrue(app.includes('EVALUATE & GET RECOMMENDATION'), 'Should contain EVALUATE & GET RECOMMENDATION CTA');
+    // Visible loading state
+    assertTrue(app.includes('AI evaluating…'), 'Should contain AI evaluating… loading state');
+    // Complete decision chain
+    assertTrue(
+        app.includes('AI Recommendation → Guardrail Outcome → Final Action → Simulated Execution → Audit ID'),
+        'Should display the 5-node decision chain'
+    );
+    // Inspect selects opportunity without automatically evaluating
+    assertTrue(app.includes('function selectOpportunity'), 'Should define selectOpportunity');
+    assertTrue(app.includes('api.getOpportunityDetail'), 'Should fetch opportunity detail on inspect');
+    // Evaluate button triggers evaluateOpportunity
+    assertTrue(app.includes('evaluateOpportunity(${detail.promise_id}, event)'), 'Should bind evaluateOpportunity to primary CTA');
+});
+
 // ============== RUN TESTS ==============
 
 async function runTests() {
     console.log('🧪 Running Promise Ledger Frontend Validation Tests\n');
     console.log('=' .repeat(60));
-    
+
     for (const { name, fn } of tests) {
         try {
             await Promise.resolve(fn());
@@ -315,10 +339,10 @@ async function runTests() {
             failCount++;
         }
     }
-    
+
     console.log('=' .repeat(60));
     console.log(`\n📊 Test Results: ${passCount} passed, ${failCount} failed (Total: ${tests.length})\n`);
-    
+
     if (failCount === 0) {
         console.log('🎉 All frontend validation tests passed!\n');
     } else {

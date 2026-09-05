@@ -7,14 +7,23 @@
  * @param {number} amount - The amount to format
  * @returns {string} Formatted rupee string
  */
-function formatCurrency(amount) {
+function formatCurrency(amount, showSign = false) {
     if (amount === null || amount === undefined) {
         return '₹ --';
     }
-    return '₹ ' + amount.toLocaleString('en-IN', {
+    const isNegative = amount < 0;
+    const absVal = Math.abs(amount);
+    const formatted = absVal.toLocaleString('en-IN', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });
+    if (isNegative) {
+        return '-₹ ' + formatted;
+    }
+    if (showSign && amount > 0) {
+        return '+₹ ' + formatted;
+    }
+    return '₹ ' + formatted;
 }
 
 /**
@@ -184,6 +193,28 @@ function getActionLabel(action) {
 }
 
 /**
+ * Get guardrail status badge class
+ * @param {string} status - ALLOW, BLOCK, or OVERRIDE
+ * @returns {string} CSS class
+ */
+function getGuardrailBadgeClass(status) {
+    if (!status) return 'guardrail-badge';
+    const s = status.toLowerCase();
+    return `guardrail-badge ${s}`;
+}
+
+/**
+ * Format a signed percentage change (e.g. -28.6% or +12.4%)
+ * @param {number} value - Percentage value (e.g. -28.6)
+ * @returns {string} Signed percentage string
+ */
+function formatSignedPercentage(value) {
+    if (value === null || value === undefined) return '--';
+    const sign = value > 0 ? '+' : '';
+    return `${sign}${value.toFixed(1)}%`;
+}
+
+/**
  * Export functions for testing
  */
 if (typeof module !== 'undefined' && module.exports) {
@@ -200,6 +231,8 @@ if (typeof module !== 'undefined' && module.exports) {
         debounce,
         deepClone,
         isValidPromiseId,
-        getActionLabel
+        getActionLabel,
+        getGuardrailBadgeClass,
+        formatSignedPercentage
     };
 }

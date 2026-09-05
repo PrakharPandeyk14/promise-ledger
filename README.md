@@ -1,475 +1,345 @@
-# Promise Ledger — Data Foundation
+# Promise Ledger — Autonomous B2B Receivables Recovery & Guardrail Platform
 
-Promise Ledger is a fintech hackathon project for B2B receivables recovery. This repository contains only its reproducible SQLite synthetic-data foundation; it does not contain the API, frontend, recovery agent, ML, or risk engine.
+**Razorpay AI Buildathon — Track 3: B2B Collections & Receivables Intelligence**
 
-## Promise-break intelligence foundation
+Promise Ledger is an intelligent receivables recovery platform that transforms post-due-date "Promises to Pay" (PTP) into actionable, risk-ranked, and merchant-guarded collection workflows. It combines chronological machine learning, transparent financial heuristics, an AI decision engine, and non-bypassable merchant policy guardrails to maximize debt recovery while protecting customer relationships.
 
-`scripts/build_features.py` builds a leakage-safe in-memory feature dataset for
-each promise. Every historical event has a date strictly before the promise
-creation date. Earlier promise outcomes are used only when their promised date
-has also passed, so a still-unresolved earlier promise cannot leak its eventual
-result. PENDING promises receive no target and are excluded from supervised
-training and evaluation.
+---
 
-The deterministic baseline uses a customer's observed broken / resolved prior
-promises after at least three resolved promises. Customers with less history
-receive a fixed 0.50 probability. The evaluation split sorts usable promises by
-creation date and assigns whole creation dates to the earlier training or later
-test partition (80/20 target), never mixing a date across both.
-`historical_recovery_rate` means paid historical invoice value divided by the
-value of invoices issued before the prediction point.
+## 1. Problem Statement
 
-## Promise risk scoring
+In B2B commerce, overdue invoices routinely enter a limbo state known as **"Promise to Pay" (PTP)**. When an invoice is past its due date, buyers frequently commit to payment on a specific future date. Today, credit and collection teams face severe operational challenges:
 
-`src/promise_ledger/risk/scoring.py` converts a promise-break probability into two distinct business signals. `promise_credibility_score` is the complement of break probability on a 0–100 scale. `recovery_probability` is intentionally different: it is a transparent heuristic blending historical invoice recovery rate (55%), historical on-time payment rate (20%), and promise credibility (25%). It is not a calibrated ML probability; it represents recovery propensity and recognizes that a broken promise can still be followed by eventual payment.
+1. **Uncalibrated Credibility**: Collections teams treat all promises equally, lacking objective signals to know whether a promise is genuine or a delay tactic.
+2. **Untracked Revenue at Risk**: Millions in working capital remain tied up with unknown break probabilities, leading to erratic cash flow forecasting.
+3. **Generic, High-Friction Dunning**: Autonomous collection systems often spam clients with repetitive dunning, alienating strategic accounts and causing customer churn.
+4. **Lack of Policy Guardrails**: Automated outreach bots frequently violate communication cooldowns, contact frequency limits, and invoice credit caps.
+5. **No Auditability**: Manual collector actions lack deterministic decision traces, making compliance audits difficult.
 
-`scripts/score_promises.py` trains the deterministic Random Forest candidate on all resolved historical promises and scores unresolved promises only. Unresolved promises never contribute their unknown outcomes to model training. Each score includes deterministic explanation text based on observable historical behavior.
+---
 
-## Synthetic-data disclaimer
+## 2. Target User & Stakeholders
 
-All records are fabricated for development and testing. They are not sourced from Razorpay or any other private, production, or customer dataset.
+Promise Ledger is designed for:
 
-## Schema
+- **B2B Merchants & Finance Teams**: CFOs, controllers, and credit managers looking to accelerate DSO (Days Sales Outstanding) and forecast cash collections reliably.
+- **Collections & Recovery Specialists**: Accounts receivable teams who need a prioritized daily queue of which accounts to automate vs. which high-risk/high-value accounts require white-glove human intervention.
+- **Fintech Platforms & Payment Aggregators (e.g., Razorpay)**: Enterprise platforms offering embedded invoice recovery and cash-flow management services to merchants.
 
-The SQLite database has exactly six main tables: `customers`, `invoices`, `payments`, `promises`, `recovery_actions`, and `merchant_policies`. Foreign keys, amount checks, status checks, and lookup indexes are built into the schema.
+---
 
-## Personas
+## 3. The Promise Ledger Solution
 
-Five centrally configured behaviours drive the simulation: reliable payer, slow but reliable, unpredictable payer, chronic broken-promiser, and high-value strategic customer. Strategic customers have larger invoices, while their payment reliability remains independently generated rather than intrinsically high or low risk.
+Promise Ledger replaces naive, static dunning workflows with an end-to-end, safety-first autonomous decision pipeline:
 
-Promise simulation is chronological. A promise is capped at the invoice balance at creation; only payments strictly after creation and on or before its due date can fulfill it. Persona promise-keeping tendency influences those future payment events, while the stored outcome is derived from the final payment ledger.
+- **Zero-Leakage ML & Risk Scoring**: Scores promise-break probability using strict point-in-time historical data.
+- **Dual-Signal Intelligence**: Distinguishes between **Promise Credibility Score** (commitment truthfulness) and **Recovery Probability** (propensity to pay eventually).
+- **Opportunity Prioritization**: Prioritizes outreach by **Expected Recovery** ($\text{Outstanding Amount} \times \text{Recovery Probability}$), ranking claims by economic impact rather than invoice age.
+- **AI Decision Engine**: Recommends the optimal recovery intervention (`SOFT_REMINDER`, `FIRM_REMINDER`, `PAYMENT_PLAN`, `ESCALATE`, `HUMAN_REVIEW`, `STOP`).
+- **Binding Merchant Guardrails**: Enforces merchant policies (cooldowns, maximum automated contacts, autonomous invoice value thresholds, risk ceilings) with `ALLOW`, `BLOCK`, or `OVERRIDE` outcomes.
+- **Safe Simulated Execution & Audit Trail**: Issues deterministic SHA-256 audit records with zero side effects or unsolicited messages.
+- **Real-Time Interactive Dashboard**: An integrated dashboard providing portfolio risk distribution, opportunity inspection, one-click evaluation, and A/B benchmark evaluation.
 
-## Commands
+---
 
-Run from the repository root on Python 3. The project uses only the standard library.
+## 4. Architecture & Component Flow
 
+The platform is designed around strict separation of concerns. The decision engine provides recommendations, but execution is gated entirely by merchant policy guardrails.
+
+```mermaid
+flowchart TD
+    subgraph Data ["Data Foundation & Leakage-Safe Features"]
+        DB[(SQLite Database<br/>Customers, Invoices, Promises,<br/>Payments, Recovery Actions)] --> FeatureBuilder[Leakage-Safe Feature Builder]
+        FeatureBuilder --> Split[Chronological 80/20 Split]
+    end
+
+    subgraph Intelligence ["Risk & Prioritization Engine"]
+        Split --> RFModel[Random Forest Classifier]
+        RFModel --> BreakProb[Promise Break Probability]
+        BreakProb --> CredScore[Promise Credibility Score: 0-100]
+        BreakProb --> RecovProb[Recovery Probability: 55% Hist + 20% OnTime + 25% Cred]
+        RecovProb --> ExpRec[Expected Recovery = Balance × RecovProb]
+        ExpRec --> Priority[Priority Tier: HIGH / MEDIUM / LOW & Rank 1..N]
+    end
+
+    subgraph Orchestration ["Autonomous Decision & Safety Pipeline"]
+        Priority --> Opp[Recovery Opportunity]
+        Opp --> DecisionEngine[AI Decision Engine]
+        DecisionEngine -->|Advisory Recommendation| Decision[Recovery Decision]
+
+        Decision --> GuardrailEngine[Merchant Guardrail Engine]
+        Policies[(Merchant Policies)] --> GuardrailEngine
+        State[(Observable History)] --> GuardrailEngine
+
+        GuardrailEngine -->|ALLOW| ExecSim[Simulated Dispatch]
+        GuardrailEngine -->|BLOCK| ExecBlock[Human Review Queue]
+        GuardrailEngine -->|OVERRIDE| ExecOverride[Policy Override / Stop]
+
+        ExecSim --> ActionExecutor[Action Executor]
+        ExecBlock --> ActionExecutor
+        ExecOverride --> ActionExecutor
+
+        ActionExecutor --> Audit[(Immutable Audit Record<br/>SHA-256 Audit ID)]
+    end
+
+    subgraph Interface ["Presentation & Evaluation"]
+        Audit --> PortfolioSummary[Portfolio Evaluator]
+        Audit --> LiveAPI[FastAPI Backend: localhost:8000]
+        LiveAPI --> Dashboard[Vanilla JS/CSS Dashboard]
+        PortfolioSummary --> Experiment[Control vs AI Treatment Evaluation]
+    end
+```
+
+---
+
+## 5. Synthetic Dataset Description
+
+The database (`data/promise_ledger.db`) is a realistic, relational SQLite dataset seeded deterministically (`SEED = 42`) spanning multi-year B2B transactions:
+
+- **6 Core Tables**:
+  - `customers`: 200 business profiles across 5 distinct risk personas.
+  - `invoices`: 1,000 issued commercial invoices with due dates, amounts, and statuses.
+  - `promises`: 1,394 promise records (1,381 resolved historical promises and 13 active unresolved opportunities).
+  - `payments`: 2,822 payment ledger transactions supporting partial and multiple payments.
+  - `recovery_actions`: 1,936 historical recovery events (SMS, email, phone, notice).
+  - `merchant_policies`: Configurable merchant risk limits, cooldowns, and value caps.
+- **5 Realistic Business Personas**:
+  1. *Reliable Payer*: High credibility, fast resolution, low break rate.
+  2. *Slow but Reliable*: High eventual recovery, but frequently breaks initial promise dates.
+  3. *Unpredictable Payer*: High variance in payment timing and promise adherence.
+  4. *Chronic Broken-Promiser*: Low credibility, low recovery rate, frequent broken commitments.
+  5. *High-Value Strategic Customer*: Significant invoice balances; requires white-glove communication.
+- **Strict Chronological Consistency**: Promises cannot exceed outstanding balances at creation. Payments must occur strictly between promise creation and due date to count as fulfillment.
+
+---
+
+## 6. Promise Credibility Score
+
+A core insight of Promise Ledger is that **breaking a promise is not the same as defaulting on an invoice**.
+
+`src/promise_ledger/risk/scoring.py` produces two complementary business signals:
+
+1. **Break Probability ($P_{\text{break}}$)**: The calibrated likelihood that the customer will fail to pay on or before their promised date.
+2. **Promise Credibility Score**:
+   $$\text{Credibility Score} = 100 \times (1.0 - P_{\text{break}})$$
+   Scaled from 0 to 100, providing credit controllers with an intuitive index of counterparty commitment reliability.
+3. **Recovery Probability ($P_{\text{rec}}$)**:
+   A transparent heuristic recognizing that broken promises are frequently followed by eventual settlement:
+   $$P_{\text{rec}} = 0.55 \times \text{Historical Recovery Rate} + 0.20 \times \text{Historical On-Time Rate} + 0.25 \times \left(\frac{\text{Credibility Score}}{100}\right)$$
+
+---
+
+## 7. Revenue-at-Risk & Portfolio Prioritization
+
+`src/promise_ledger/risk/prioritization.py` converts statistical probabilities into rupee-denominated financial opportunities:
+
+$$\text{Expected Recovery} = \text{Outstanding Amount at Promise Creation} \times P_{\text{rec}}$$
+
+- **Deterministic Ranking**: Opportunities are ranked in descending order of Expected Recovery, with strict tie-breakers on Outstanding Amount, Break Probability, and Promise ID.
+- **Priority Tiers**: Categorizes opportunities into `HIGH`, `MEDIUM`, and `LOW` priority tiers for operational triage.
+
+---
+
+## 8. AI Recovery Decision Engine
+
+`src/promise_ledger/recovery/` converts each opportunity into an optimal recovery strategy without looking at future outcomes:
+
+### Decision Hierarchy
+1. **`STOP`**: Negligible balance or unrecoverable account.
+2. **`HUMAN_REVIEW`**: Extreme balance, legal sensitivity, or contradictory risk profile.
+3. **`ESCALATE`**: High-priority, high-break-risk opportunity requiring immediate escalation.
+4. **`PAYMENT_PLAN`**: Debtor has high willingness but liquidity constraints; structured installment plan needed.
+5. **`FIRM_REMINDER`**: Elevated break risk suitable for automated, assertive communication.
+6. **`SOFT_REMINDER`**: Low break risk; gentle SMS/WhatsApp notification.
+
+*All policy thresholds are encapsulated in an immutable `DecisionConfig` (`src/promise_ledger/recovery/config.py`).*
+
+---
+
+## 9. Merchant Guardrails
+
+Recommendations are advisory; **guardrails are binding**. `src/promise_ledger/recovery/guardrails.py` evaluates every recommendation against merchant policies and current state:
+
+- **Safety Hierarchy**:
+  $$\text{STOP} \rightarrow \text{HUMAN\_REVIEW} \rightarrow \text{ESCALATE} \rightarrow \text{PAYMENT\_PLAN} \rightarrow \text{FIRM\_REMINDER} \rightarrow \text{SOFT\_REMINDER}$$
+- **Key Policy Enforcements**:
+  - **Cooldown Enforcement**: Blocks autonomous contact if elapsed time since the last action is less than `minimum_contact_cooldown_days` (default: 3 days).
+  - **Contact Saturation**: Blocks autonomous actions if total automated touches reach `maximum_automated_contacts` (default: 4 touches), routing to `HUMAN_REVIEW`.
+  - **Autonomous Value Ceiling**: Invoices above `maximum_invoice_value_autonomous` (default: ₹15,000.00) are overridden to `HUMAN_REVIEW` to protect key relationships.
+  - **Risk Ceiling**: Break probabilities above `human_review_threshold` (default: 0.70) cannot be handled autonomously.
+- **Guardrail Outcomes**:
+  - `ALLOW`: The recommended action is approved.
+  - `BLOCK`: The action is rejected due to policy limits; diverted to `HUMAN_REVIEW`.
+  - `OVERRIDE`: The action is replaced with a safer policy action (`STOP` or `HUMAN_REVIEW`).
+
+---
+
+## 10. Action Executor & Audit Trail
+
+`src/promise_ledger/recovery/executor.py` guarantees safe execution:
+
+- **Zero Side Effects**: Dispatches zero live SMS, emails, or transactions; records only `SIMULATED_EXECUTION`, `BLOCKED_NO_EXECUTION`, or `OVERRIDDEN_NO_EXECUTION`.
+- **No Bypass Path**: The executor only accepts recommendations and invokes guardrails internally; it rejects caller-supplied final actions.
+- **Deterministic Audit ID**: Generates an immutable SHA-256 audit digest (`AUD-{promise_id}-{date}-{status}-{action}`).
+
+---
+
+## 11. Control vs. AI Treatment Methodology
+
+To measure effectiveness, `src/promise_ledger/evaluation/experiment.py` compares traditional static collections against Promise Ledger's guarded AI pipeline:
+
+- **Control (Baseline)**: Models traditional dunning where every account recovers at its unconstrained historical recovery rate ($\text{Outstanding} \times \text{Historical Recovery Rate}$).
+- **Treatment (Promise Ledger)**: Runs the full `Opportunity → Decision Engine → Guardrail Engine → Action Executor` chain:
+  - Allowed actions receive an empirical multiplier (`SOFT_REMINDER: 1.05`, `FIRM_REMINDER: 1.10`, `PAYMENT_PLAN: 1.15`, `ESCALATE: 1.20`, `HUMAN_REVIEW: 1.08`).
+  - Blocked and overridden actions (`BLOCKED_NO_EXECUTION` or `OVERRIDDEN_NO_EXECUTION`) receive **₹0.00 automated recovery credit** in this conservative offline benchmark.
+  - Stopped actions receive **₹0.00 recovery credit**.
+
+---
+
+## 12. Honest Benchmark Results
+
+We believe in scientific honesty and zero-trust engineering. Below are the actual offline benchmark results across the 13 active unresolved opportunities (`run_experiment()`):
+
+| Metric | Control (Baseline) | Treatment (Promise Ledger) | Variance / Delta |
+| :--- | :--- | :--- | :--- |
+| **Evaluated Opportunities** | 13 | 13 | 100% evaluated |
+| **Total Outstanding Amount** | ₹30,528.70 | ₹30,528.70 | ₹30,528.70 portfolio |
+| **Total Recovered Amount** | ₹13,084.93 | ₹9,342.34 | **-₹3,742.59** |
+| **Recovery Rate** | 42.86% | 30.60% | **-12.26% pts** |
+| **Treatment Improvement %** | — | **-28.60%** | Offline benchmark delta |
+| **Automation Rate** | 0.00% | 23.08% (3 / 13) | Fully automated (`ALLOW`) |
+| **Human Review Rate** | 100.00% (Manual) | 69.23% (9 / 13) | Routed to human specialists |
+| **Stopped Rate** | 0.00% | 7.69% (1 / 13) | Outreach suppressed (`STOP`) |
+| **Evaluation Date** | 2026-08-31 | 2026-08-31 | Point-in-time benchmark |
+
+### Understanding the Negative Incremental Recovery (-₹3,742.59)
+The treatment recovery is lower in this offline benchmark due to intentional, transparent design choices:
+1. **Lift on Allowed Opportunities (+₹1,470.48 / +18.68%)**: On the 7 opportunities where actions were permitted (`SIMULATED_EXECUTION`), Treatment outperformed Control, recovering **₹9,342.34** vs Control's **₹7,871.86**.
+2. **Strict Guardrail Diversion on 6 Opportunities (₹14,528.44 balance)**:
+   - 5 opportunities (₹12,503.29) were **BLOCKED** by Guardrails due to active contact cooldown (`CONTACT_COOLDOWN_ACTIVE`) to prevent harassment.
+   - 1 opportunity (₹2,025.15) was **OVERRIDDEN** to `STOP` (`PROMISE_NOT_ACTIONABLE`).
+   - In this conservative benchmark, blocked/overridden cases receive **₹0.00 recovery credit**, whereas Control unconstrainedly credited them with **₹5,213.07**.
+3. **Net Portfolio Delta**:
+   $$\text{Incremental Recovery} = +₹1,470.48 - ₹5,213.07 = -₹3,742.59 \quad (-28.60\%)$$
+4. **The 69.23% (₹21,136.42) Human Review Cohort**:
+   Comprises 9 opportunities: 4 recommended directly by the Decision Engine for collector discretion (₹8,633.13), plus 5 automated recommendations blocked by Guardrails due to active cooldowns (₹12,503.29).
+
+*For the complete mathematical decomposition, see the dedicated [EVALUATION.md](file:///c:/Users/DeLL/OneDrive/Documents/PromiseLedger_Day4/promise_ledger/EVALUATION.md).*
+
+---
+
+## 13. API Endpoints
+
+The read-only FastAPI application exposes the entire pipeline:
+
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `/health` | `GET` | Health check endpoint (`{"status": "ok"}`). |
+| `/portfolio/summary` | `GET` | Aggregated portfolio metrics, tier counts, and experiment results. |
+| `/opportunities` | `GET` | Ranked list of active unresolved recovery opportunities. |
+| `/opportunities/{id}` | `GET` | Detailed opportunity inspection (invoices, promises, risk factors). |
+| `/opportunities/{id}/evaluate` | `POST` | Executes full decision chain, guardrails, and returns audit record. |
+| `/evaluation/experiment` | `GET` | Returns Control vs AI Treatment comparative metrics. |
+
+---
+
+## 14. Local Setup & Run Instructions
+
+### Prerequisites
+- Python 3.10+ (standard library + FastAPI, Uvicorn, Pydantic)
+- Modern web browser (Chrome, Edge, Firefox)
+
+### 1. Clone & Environment Setup
+```powershell
+git clone <repo-url>
+cd promise_ledger
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+### 2. Run Data Generation & Scoring (Optional — Pre-generated DB Included)
 ```powershell
 $env:PYTHONPATH = "src"
 python scripts/generate_data.py
-python scripts/validate_data.py
-python scripts/print_summary.py
 python scripts/build_features.py
-python -m unittest discover -s tests -v
-```
-
-The generated database is `data/promise_ledger.db`. Generation uses `SEED = 42`, so rerunning it recreates the same data.
-
-## Expected recovery and portfolio prioritization
-
-`src/promise_ledger/risk/prioritization.py` turns the recovery-propensity signal into a financial opportunity value:
-`expected_recovery = outstanding_amount_at_promise_creation × recovery_probability`.
-Unresolved promises are ranked by expected recovery, with deterministic tie-breakers on outstanding amount, break probability, and promise ID.
-The ranked portfolio is split into deterministic HIGH/MEDIUM/LOW priority tiers and receives a relative priority score for presentation.
-This layer only prioritizes opportunities; it does not execute actions or bypass merchant policies. Day 4 will consume the ranking in the decision and guardrail layers.
-
-Run:
-
-```powershell
-$env:PYTHONPATH = "src"
+python scripts/score_promises.py
 python scripts/prioritize_recovery.py
 ```
 
-## Day 4 Step 1: Recovery Decision Engine
+### 3. Start the Application Server
+```powershell
+$env:PYTHONPATH = "src"
+python -m uvicorn --app-dir src promise_ledger.api.app:app --host 127.0.0.1 --port 8000
+```
 
-`src/promise_ledger/recovery/` converts each Day 3 `RecoveryOpportunity` into
-one deterministic recommendation. It consumes the existing break probability,
-promise credibility, recovery probability, expected recovery, and priority
-tier. Optional historical feature context can identify contradictory or
-structured-repayment situations. The current promise's outcome is never read.
+### 4. Access the Dashboard
+Open your browser and navigate to:
+```
+http://127.0.0.1:8000
+```
 
-Available recommendations are:
+---
 
-- `STOP`: no actionable balance or negligible recovery opportunity.
-- `HUMAN_REVIEW`: exposure or contradictory evidence requires judgment.
-- `ESCALATE`: high-priority, high-break-risk opportunity needing stronger attention.
-- `PAYMENT_PLAN`: immediate full payment appears unlikely but structured recovery is meaningful.
-- `FIRM_REMINDER`: elevated break risk remains suitable for automated intervention.
-- `SOFT_REMINDER`: lower break risk with an actionable balance.
+## 15. Testing Results
 
-The hierarchy is evaluated in that order. All numerical policy thresholds are
-centralized in the immutable `DecisionConfig` in
-`src/promise_ledger/recovery/config.py`; these defaults are documented policy
-values and can later be replaced by merchant policies. They are not simulator
-parameters or persona labels.
-
-Run the recommendation report with:
+The codebase is backed by a comprehensive automated test suite spanning ML feature leakage, deterministic scoring, guardrail bounds, action execution, API schemas, and frontend presentation:
 
 ```powershell
 $env:PYTHONPATH = "src"
-python scripts/decide_recovery.py
+python -m unittest discover tests -v
 ```
 
-For example, a high-break-risk, high-priority promise with meaningful expected
-recovery is recommended for `ESCALATE`; a lower-risk actionable promise is
-recommended for `SOFT_REMINDER`.
-
-These are recommendations only. The engine does not send messages, modify
-payments, call payment APIs, or execute recovery. Future execution must apply
-merchant guardrails before any action is considered. Guardrails and execution
-are intentionally outside Day 4 Step 1.
-
-## Day 4 Step 2: Guardrail Engine
-
-`src/promise_ledger/recovery/guardrails.py` independently evaluates a Step 1
-recommendation against the existing `merchant_policies` row and current
-observable state. It returns `ALLOW`, `BLOCK`, or `OVERRIDE`, with a final
-action, explicit reason code, explanation, policy value, and observed value.
-It has no execution path: it cannot send contact, modify payments, create
-transactions, or call an external API.
-
-The safety hierarchy is:
-
-`STOP -> HUMAN_REVIEW -> ESCALATE -> PAYMENT_PLAN -> FIRM_REMINDER -> SOFT_REMINDER`
-
-Checks run in that order. A negligible balance, negligible expected recovery,
-resolved promise, paid invoice, or written-off invoice becomes `STOP`. Risk at
-or above the merchant `human_review_threshold`, or an invoice above
-`maximum_invoice_value_autonomous`, becomes `HUMAN_REVIEW`. Automated contact
-is blocked when `maximum_automated_contacts` has been reached or when the
-`minimum_contact_cooldown_days` has not elapsed. A payment plan exceeding
-`maximum_payment_plan_duration_days` is routed to `HUMAN_REVIEW`.
-
-The generated merchant policy currently configures:
-
-- maximum automated contacts: `4`
-- minimum contact cooldown: `3` days
-- maximum autonomous invoice value: `15000.0`
-- maximum payment-plan duration: `90` days
-- human-review risk threshold: `0.70`
-
-For example, an overdue `SOFT_REMINDER` with a meaningful balance and no
-recent contacts is allowed. The same recommendation after four automated
-contacts is blocked and routed to `HUMAN_REVIEW` with
-`MAX_CONTACTS_EXCEEDED`. An invoice above `15000.0` is overridden to
-`HUMAN_REVIEW` with `AUTONOMOUS_VALUE_LIMIT_EXCEEDED`.
-
-Run the deterministic portfolio evaluation with:
-
-```powershell
-$env:PYTHONPATH = "src"
-python scripts/evaluate_guardrails.py
-```
-
-The schema has no policy-window column, so contact counts use all observable
-historical automated recovery actions for the invoice up to the evaluation
-date. The schema also has no payment-plan minimum-recovery field, so Step 2
-enforces the available duration limit and relies on Step 1 for recovery
-appropriateness. These assumptions can be replaced when merchant policy
-fields are expanded; no schema change is made in this step.
-
-## Day 4 Step 3: Safe Action Execution and Audit
-
-`src/promise_ledger/recovery/executor.py` provides the final prototype layer:
-`Promise -> Decision Engine -> Guardrail Engine -> Action Executor -> AuditRecord`.
-The `ActionExecutor` accepts a Step 1 `RecoveryDecision`, always invokes the
-existing `GuardrailEngine`, and does not accept a caller-supplied final action.
-This keeps execution from bypassing policy checks.
-
-The executor records three outcomes without real-world side effects:
-
-- `ALLOW`: records `SIMULATED_EXECUTION` for the recommended action.
-- `BLOCK`: records `BLOCKED_NO_EXECUTION` and the guardrail reason.
-- `OVERRIDE`: records the original recommendation, replacement final action,
-  and `OVERRIDDEN_NO_EXECUTION`.
-
-Each immutable `AuditRecord` includes a deterministic SHA-256 `audit_id`,
-evaluation date, promise/invoice/customer identifiers, recommended action,
-guardrail status, final action, reason code and explanation, expected recovery,
-break probability, promise credibility, priority tier, simulated flag, and
-execution status. Records are currently returned in memory rather than written
-to the database, so the database schema remains unchanged.
-
-Run the demonstration against existing unresolved promises with:
-
-```powershell
-$env:PYTHONPATH = "src"
-python scripts/simulate_recovery.py
-```
-
-The demonstration only records what would happen. It does not send email,
-SMS, WhatsApp, or other messages; process payments; modify payment records;
-create recovery transactions; or call external services. A production version
-would need an append-only durable audit store, authentication, idempotency,
-merchant guardrails, and explicit execution adapters before any real action.
-
-## Day 4 Step 4: Portfolio-Level Orchestration and Evaluation
-
-`src/promise_ledger/recovery/orchestration.py` chains the existing components
-into a deterministic end-to-end recovery workflow that accepts a collection of
-unresolved promises and produces audit records and portfolio metrics:
-
-```
-Portfolio → Risk/Decision Engine → Guardrail Engine → Action Executor → Audit Records
-                                                                       ↓
-                                                              Portfolio Evaluation
-```
-
-The `RecoveryOrchestrator` does not invent a second decision system. Instead,
-it orchestrates the three existing layers:
-
-1. **Step 1 (Decision Engine)**: Recommends a single recovery action based on
-   promise risk, expected recovery, and priority. The recommendation is
-   advisory; it does not constrain guardrails.
-
-2. **Step 2 (Guardrail Engine)**: Evaluates the recommendation against
-   merchant policy and observable state. Returns `ALLOW`, `BLOCK`, or
-   `OVERRIDE`, with a final action. The final action is binding; the executor
-   never accepts a caller-supplied override.
-
-3. **Step 3 (Action Executor)**: Records the outcome as an immutable audit
-   record. Only ALLOW outcomes are marked `SIMULATED_EXECUTION`; BLOCK and
-   OVERRIDE outcomes are marked `BLOCKED_NO_EXECUTION` and
-   `OVERRIDDEN_NO_EXECUTION` respectively.
-
-**Key Design Properties:**
-
-- **No Bypass**: The orchestrator cannot accept or force a caller-supplied
-  final action. Guardrails are always invoked.
-- **Deterministic**: Identical input data produces identical audit IDs and
-  decisions across multiple runs.
-- **Side-Effect Free**: No database writes, no payment changes, no real
-  communication, no external API calls.
-- **Audit Trail**: Every evaluated opportunity generates an immutable audit
-  record with the full decision chain.
-
-### Portfolio Evaluation Metrics
-
-`src/promise_ledger/recovery/portfolio.py` provides the `PortfolioEvaluator`
-and `PortfolioMetrics` classes. The evaluator aggregates orchestration results
-into comprehensive portfolio statistics:
-
-**Financial Metrics:**
-
-- Total outstanding amount across the portfolio
-- Total expected recovery
-- Average expected recovery per opportunity
-- Expected recovery and outstanding amount by final action
-
-**Decision Metrics:**
-
-- Recommended action distribution (SOFT_REMINDER, FIRM_REMINDER, PAYMENT_PLAN,
-  ESCALATE, HUMAN_REVIEW, STOP)
-- Final action distribution (after guardrails)
-
-**Guardrail Metrics:**
-
-- Count of ALLOW decisions (simulated execution)
-- Count of BLOCK decisions (guardrail rejected recommendation)
-- Count of OVERRIDE decisions (recommendation replaced with HUMAN_REVIEW)
-
-**Execution Metrics:**
-
-- Count of simulated executions
-- Count of blocked (no execution)
-- Count of overridden (no execution)
-- Count of STOP outcomes
-- Count of HUMAN_REVIEW outcomes
-
-**Portfolio Classification:**
-
-- Percentage of opportunities automated (ALLOW)
-- Percentage requiring human review (HUMAN_REVIEW + BLOCK + OVERRIDE)
-- Percentage stopped (no recovery action)
-
-### Demonstration Script
-
-`scripts/orchestrate_recovery.py` demonstrates the complete end-to-end pipeline
-using the existing database:
-
-1. Fetches the top 10 unresolved opportunities by expected recovery
-2. Runs each through the decision engine → guardrails → executor chain
-3. Evaluates the portfolio with PortfolioEvaluator
-4. Prints a comprehensive summary including:
-   - Portfolio overview (total amount, expected recovery, counts)
-   - Recommended action distribution
-   - Final action distribution (after guardrails)
-   - Guardrail decision counts
-   - Execution outcome counts
-   - Opportunity classification (automated, human review, stopped)
-   - Expected recovery by final action
-   - Outstanding amount by final action
-
-5. Prints representative audit records demonstrating:
-   - An ALLOW outcome (simulated execution)
-   - A BLOCK outcome (guardrail rejected)
-   - An OVERRIDE outcome (overridden to HUMAN_REVIEW)
-   - A STOP outcome (no actionable recovery)
-   - A HUMAN_REVIEW outcome (if available)
-
-Run with:
-
-```powershell
-$env:PYTHONPATH = "src"
-python scripts/orchestrate_recovery.py
-```
-
-### Architecture Summary
-
-The complete Day 4 recovery pipeline follows this architecture:
-
-```
-Unresolved Promise (from database)
-  ↓
-RecoveryOpportunity (Day 3 risk/prioritization)
-  ↓
-RecoveryDecisionEngine (Step 1: Recommendation)
-  → RecoveryDecision (what action is recommended)
-  ↓
-GuardrailEngine (Step 2: Policy validation)
-  → GuardrailResult (ALLOW/BLOCK/OVERRIDE + final action)
-  ↓
-ActionExecutor (Step 3: Audit recording)
-  → ExecutionResult
-    - GuardrailResult (decision chain)
-    - AuditRecord (immutable, deterministic SHA-256 audit_id)
-  ↓
-PortfolioEvaluator (portfolio-level analysis)
-  → PortfolioMetrics (comprehensive summary statistics)
-```
-
-**Critical Distinctions:**
-
-- **Recommendation**: The decision engine's suggested action. Purely advisory.
-- **Guardrail Decision**: The policy check result (ALLOW/BLOCK/OVERRIDE).
-  Binding. The final action follows this decision.
-- **Final Action**: The action that results from the guardrail decision.
-  Binding. Never set by the caller. Always determined by guardrails.
-- **Execution Status**: How the final action was recorded (SIMULATED if ALLOW,
-  BLOCKED if BLOCK, OVERRIDDEN if OVERRIDE).
-- **Audit Record**: Immutable evidence of the complete evaluation chain,
-  including all four elements above, plus promise/invoice/customer identifiers,
-  expected recovery, risk scores, and a deterministic audit ID.
-
-### No Schema Changes
-
-The orchestration and portfolio evaluation layers use only the existing
-`promises`, `invoices`, `customers`, `recovery_actions`, and
-`merchant_policies` tables. No new tables, columns, or indexes are added. Audit
-records are currently in-memory; a production system would add an append-only
-audit log table and durable persistence.
-
-### Day 5 Step 2: FastAPI Backend
-
-The read-only FastAPI application in `src/promise_ledger/api/` exposes the
-existing scoring, prioritization, recovery, guardrail, and portfolio layers
-without changing the database or performing real recovery actions. Run it from
-the repository root with:
-
-```powershell
-$env:PYTHONPATH = "src"
-uvicorn promise_ledger.api:app --reload
-```
-
-Available endpoints are `GET /health`, `GET /portfolio/summary`,
-`GET /opportunities`, `GET /opportunities/{promise_id}`, and
-`POST /opportunities/{promise_id}/evaluate`. Evaluation records only the
-existing simulated audit result; it does not send messages, collect payments,
-or modify ledger records.
-
-### Day 5 Step 3: Frontend Dashboard
-
-The Promise Ledger frontend (`frontend/`) is a professional B2B receivables recovery dashboard built with vanilla HTML, CSS, and JavaScript. It provides a clean, judge-friendly interface for portfolio oversight and opportunity evaluation.
-
-**Key Features:**
-
-- **Portfolio Overview**: Total outstanding, expected recovery, at-risk count, and recovery potential
-- **Priority Distribution**: Visual breakdown of opportunities by priority tier (HIGH/MEDIUM/LOW)
-- **At-Risk Opportunities Table**: Sortable table showing promise ID, customer ID, invoice ID, outstanding amount, expected recovery, break probability, credibility score, priority tier, and action buttons
-- **Opportunity Detail Panel**: Comprehensive view with promise/invoice details, risk metrics, and historical context
-- **Visual Risk Signals**: Color-coded risk levels (HIGH/MEDIUM/LOW) and credibility indicators
-- **Guardrail Indicators**: Display of ALLOW/BLOCK/OVERRIDE statuses with reason codes
-- **Evaluation Results**: Full audit trail and recommended actions with explanations
-
-**Architecture:**
-
-The frontend includes a clean API client abstraction layer (`frontend/js/api-client.js`) that mirrors the backend endpoints:
-
-- `PromiseLedgerAPI.getHealth()` → `GET /health`
-- `PromiseLedgerAPI.getPortfolioSummary()` → `GET /portfolio/summary`
-- `PromiseLedgerAPI.getOpportunities()` → `GET /opportunities`
-- `PromiseLedgerAPI.getOpportunityDetail(promise_id)` → `GET /opportunities/{promise_id}`
-- `PromiseLedgerAPI.evaluateOpportunity(promise_id)` → `POST /opportunities/{promise_id}/evaluate`
-
-**Utility Functions** (`frontend/js/utils.js`):
-
-- Currency formatting as Indian Rupees (₹)
-- Percentage and score formatting
-- Risk and credibility classification
-- Priority badge styling
-- Date formatting and validation
-- Action label conversion
-
-**Styling:**
-
-Professional B2B color scheme with:
-
-- Dark navy primary (#1a1a2e)
-- Deep blue secondary (#0f3460)
-- Risk-level indicators (red/orange/green)
-- Responsive grid layout
-- Clean typography and spacing
-
-**Testing:**
-
-Frontend validation tests in `frontend/tests/test_frontend.js` verify:
-
-- Utility function behavior and edge cases
-- API client structure and validation
-- File existence and syntax correctness
-- HTML element structure
-- CSS class coverage
-
-Run tests with:
-
-```powershell
-node frontend/tests/test_frontend.js
-```
-
-### Day 5 Step 4: Local Frontend/API Integration
-
-FastAPI serves the existing `frontend/` directory at `/`, so the dashboard uses the live API on the same local origin without CORS configuration. Start the application from the repository root with:
-
-```powershell
-$env:PYTHONPATH = "src"
-.\.venv\Scripts\python.exe -m uvicorn promise_ledger.api.app:app --host 127.0.0.1 --port 8000
-```
-
-Open `http://localhost:8000/` in Chrome. The dashboard loads health, portfolio, and opportunity data from the API and displays evaluation recommendations, guardrail reasons, and simulated audit details.
-
-The integration preserves the existing database schema, generated data, and recovery logic. Evaluation remains deterministic and in-memory; it does not send messages, process payments, or write audit records.
-
-The Step 3 implementation includes:
-
-- ✅ Complete dashboard UI and styling
-- ✅ API client abstraction layer
-- ✅ Utility and formatting functions
-- ✅ Local structure and validation tests
-- ✅ Day 5 Step 4: Live API wiring
-
-See `frontend/README.md` for detailed frontend documentation.
-
-### Testing
-
-Comprehensive test suite in `tests/test_orchestration.py` validates:
-
-- Complete pipeline execution (decision → guardrails → executor → audit)
-- Guardrail enforcement is preserved across orchestration
-- Executor is always used (no bypass path exists)
-- No final-action bypass is possible (caller cannot override guardrails)
-- Deterministic results (identical input → identical audit_id)
-- Portfolio metrics are correctly aggregated
-- Audit records are complete and immutable
-- Blocked actions are not simulated
-- Overridden actions are not simulated
-- Allowed actions are simulated
-- No database mutations occur
-- Empty portfolio handling
-- Mixed portfolio handling (various outcomes in one run)
-
-Frontend tests in `frontend/tests/test_frontend.js` validate:
-
-- Utility functions (formatting, validation, helpers)
-- API client structure and error handling
-- HTML structure and required elements
-- CSS styling and responsive design
-- JavaScript syntax correctness
+**Verification Summary**:
+- **Total Test Suite**: **134 / 134 tests passing** (`Ran 134 tests in 39.785s - OK`).
+- **Frontend Presentation Tests**: **10 / 10 tests passing** (`tests/test_frontend_validation.py`).
+- **Data Integrity & Leakage Tests**: 100% point-in-time compliance verified.
+- **Side-Effect Safety**: Zero mutations on ledger and payment tables verified.
+
+---
+
+## 16. Synthetic-Data & Simulated-Execution Disclaimer
+
+> [!NOTE]
+> **Data & Execution Notice**:
+> - All customer names, GSTINs, phone numbers, email addresses, invoice amounts, and promise histories are **100% synthetically generated** for development and evaluation. They are not derived from Razorpay or any proprietary production dataset.
+> - All action dispatches are **strictly simulated** (`SIMULATED_EXECUTION`). Promise Ledger does not transmit real SMS, WhatsApp, or email messages, nor does it initiate banking or payment transactions.
+
+---
+
+## 17. Demo Flow
+
+When presenting or testing the platform at `http://127.0.0.1:8000`, follow this standard evaluation flow:
+
+1. **Header & Health Check**: Confirm `Backend Connected` with a green indicator dot and view the portfolio summary cards.
+2. **Opportunity Inspection (Promise #76)**:
+   - Click **Inspect** on Rank #1 (Promise #76: Outstanding ₹3,041.18, Expected Recovery ₹2,187.52, Credibility Score 93.61).
+   - Verify that inspection loads customer and risk metrics **without auto-evaluating** (CTA displays `Ready to Evaluate`).
+   - Click **`⚡ EVALUATE & GET RECOMMENDATION`**:
+     - Observe loading state (`AI evaluating…`).
+     - Decision Chain: `AI Recommendation (SOFT_REMINDER) → Guardrail Outcome (ALLOW) → Final Action (SOFT_REMINDER) → Simulated Execution → Audit ID`.
+3. **Policy Override to STOP (Promise #684)**:
+   - Select Promise #684 (Outstanding ₹2,025.15, Expected Recovery ₹1,098.44).
+   - Click **`⚡ EVALUATE & GET RECOMMENDATION`**:
+     - Observe **`OVERRIDE`** guardrail status with reason `PROMISE_NOT_ACTIONABLE` and final action **`STOP`** (outreach suppressed to prevent wasteful dunning).
+4. **Policy Block & Cooldown Protection (Promise #1203)**:
+   - Select Promise #1203 (Outstanding ₹4,376.83, Expected Recovery ₹1,522.26).
+   - Click **`⚡ EVALUATE & GET RECOMMENDATION`**:
+     - Observe **`BLOCK`** guardrail status with reason `CONTACT_COOLDOWN_ACTIVE` and final action **`HUMAN_REVIEW`** (outreach blocked due to active 3-day contact cooldown, routing to human specialist).
+5. **Control vs. AI Treatment Evaluation**:
+   - Scroll to the bottom card to review the comparative benchmark metrics, showing the 23.08% automation rate and 69.23% human review protection rate.
+
+---
+
+## 18. Known Limitations & Future Improvements
+
+### Known Limitations
+- **Offline Attribution Gap**: The current offline benchmark assigns zero recovery credit to accounts routed to human review, underestimating total enterprise yield.
+- **Static In-Memory Audit Trail**: Audit records are generated deterministically in-memory; enterprise production requires an immutable, append-only PostgreSQL or ClickHouse audit store.
+- **Single Merchant Policy**: The prototype evaluates against a single global merchant policy; enterprise needs require multi-tenant policy rules per business unit.
+
+### Future Roadmap
+1. **Dynamic Human Collector Yield Models**: Integrate historical collector recovery rates to model hybrid human-in-the-loop recovery yields accurately.
+2. **Live Multi-Channel Communication Adapters**: Connect Razorpay Engage, WhatsApp Business API, and SMS gateways behind audited idempotency tokens.
+3. **Debtor Self-Service Portal**: Allow debtors receiving smart reminders to click personalized payment links, settle instantly via Razorpay Checkout, or request automated payment installments.
+4. **Reinforcement Learning from Human Feedback (RLHF)**: Adapt recommendation policies based on collector approvals and merchant dispute feedback.

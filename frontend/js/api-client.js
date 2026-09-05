@@ -56,6 +56,14 @@ class PromiseLedgerAPI {
     }
 
     /**
+     * GET /evaluation/experiment - Get control vs AI treatment evaluation metrics
+     * @returns {Promise<Object>} Experiment metrics comparing control vs AI treatment
+     */
+    async getEvaluationExperiment() {
+        return this._request('/evaluation/experiment');
+    }
+
+    /**
      * GET /opportunities - Get all at-risk opportunities
      * @returns {Promise<Array>} List of opportunities
      */
