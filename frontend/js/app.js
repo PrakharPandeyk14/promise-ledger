@@ -154,6 +154,16 @@ function renderPortfolioMetrics() {
     if (recRateEl) {
         recRateEl.textContent = formatPercentage(recoveryRate);
     }
+
+    const yieldBar = document.getElementById('recoveryYieldBar');
+    if (yieldBar) {
+        const pct = Math.min(100, Math.max(0, Math.round(recoveryRate * 100)));
+        yieldBar.style.width = `${pct}%`;
+    }
+    const yieldText = document.getElementById('recoveryYieldText');
+    if (yieldText) {
+        yieldText.textContent = `${formatPercentage(recoveryRate)} of total portfolio risk`;
+    }
 }
 
 /**
@@ -390,6 +400,11 @@ function renderDetailPanel(detail, evaluation = null) {
                 <span class="detail-field-label">Promise Credibility Score</span>
                 <span class="detail-field-value ${credibilityClass}">${credibilityScore} / 100</span>
             </div>
+            <div class="risk-progress-wrap">
+                <div class="risk-progress-track">
+                    <div class="risk-progress-fill ${credibilityClass}" style="width: ${Math.min(100, credibilityScore)}%"></div>
+                </div>
+            </div>
         </div>
 
         <!-- Risk Metrics Section -->
@@ -399,9 +414,19 @@ function renderDetailPanel(detail, evaluation = null) {
                 <span class="detail-field-label">Break Probability</span>
                 <span class="detail-field-value ${riskClass}">${formatPercentage(breakProbability)}</span>
             </div>
+            <div class="risk-progress-wrap">
+                <div class="risk-progress-track">
+                    <div class="risk-progress-fill ${riskClass}" style="width: ${Math.min(100, Math.round(breakProbability * 100))}%"></div>
+                </div>
+            </div>
             <div class="detail-field">
                 <span class="detail-field-label">Recovery Probability</span>
                 <span class="detail-field-value">${formatPercentage(recoveryProbability)}</span>
+            </div>
+            <div class="risk-progress-wrap">
+                <div class="risk-progress-track">
+                    <div class="risk-progress-fill recovery" style="width: ${Math.min(100, Math.round(recoveryProbability * 100))}%"></div>
+                </div>
             </div>
             <div class="detail-field">
                 <span class="detail-field-label">Priority Tier</span>
@@ -605,13 +630,28 @@ function showEvaluationResult(evaluation) {
                 <span class="result-label">Promise Credibility Score</span>
                 <span class="result-value">${credibilityScore} / 100</span>
             </div>
+            <div class="risk-progress-wrap">
+                <div class="risk-progress-track">
+                    <div class="risk-progress-fill ${typeof credibilityScore === 'number' ? getCredibilityClass(credibilityScore) : 'credibility-medium'}" style="width: ${typeof credibilityScore === 'number' ? Math.min(100, credibilityScore) : 50}%"></div>
+                </div>
+            </div>
             <div class="result-field">
                 <span class="result-label">Break Probability</span>
                 <span class="result-value">${formatPercentage(evaluation.break_probability)}</span>
             </div>
+            <div class="risk-progress-wrap">
+                <div class="risk-progress-track">
+                    <div class="risk-progress-fill ${getRiskClass(evaluation.break_probability)}" style="width: ${Math.min(100, Math.round(evaluation.break_probability * 100))}%"></div>
+                </div>
+            </div>
             <div class="result-field">
                 <span class="result-label">Recovery Probability</span>
                 <span class="result-value">${formatPercentage(evaluation.recovery_probability)}</span>
+            </div>
+            <div class="risk-progress-wrap">
+                <div class="risk-progress-track">
+                    <div class="risk-progress-fill recovery" style="width: ${Math.min(100, Math.round(evaluation.recovery_probability * 100))}%"></div>
+                </div>
             </div>
             <div class="result-field">
                 <span class="result-label">Priority Tier</span>

@@ -3,293 +3,407 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Promise Ledger - B2B Recovery Dashboard</title>
+    <title>Promise Ledger — Autonomous Receivables Recovery & Risk Intelligence</title>
     <!-- Modern typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/dashboard.css" />
   </head>
   <body>
-    <div class="app">
-      <!-- Header -->
-      <header class="header">
-        <div class="header-left">
-          <div class="brand-block">
-            <div class="brand-icon">⚡</div>
-            <div class="header-content">
-              <div class="brand-row">
-                <h1 class="logo">Promise Ledger</h1>
-                <span class="badge-track">Razorpay AI Buildathon • Track 3</span>
-              </div>
-              <p class="tagline">B2B Receivables Recovery & Risk Management Engine</p>
-            </div>
+    <div class="app-layout">
+      <!-- Clean Minimalist Sidebar -->
+      <aside class="app-sidebar">
+        <div class="sidebar-brand">
+          <div class="brand-logo-mark">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#2563eb" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M2 17L12 22L22 17" stroke="#2563eb" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M2 12L12 17L22 12" stroke="#3b82f6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="brand-info">
+            <span class="brand-title">Promise Ledger</span>
+            <span class="brand-badge">Recovery OS</span>
           </div>
         </div>
 
-        <div class="header-right">
-          <div class="sim-badge" title="All pipeline predictions and actions are offline simulations on synthetic data">
-            <span class="sim-dot"></span>
-            <span class="sim-text">SIMULATED DEMO • SYNTHETIC DATA</span>
-          </div>
-          <div class="health-indicator" id="healthIndicator">
-            <span class="status-dot" id="statusDot"></span>
-            <span id="healthStatus">Checking...</span>
+        <nav class="sidebar-nav">
+          <div class="nav-section-label">PLATFORM</div>
+          <a href="#overview" class="nav-item active">
+            <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <span>Dashboard</span>
+          </a>
+          <a href="#opportunities" class="nav-item">
+            <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="8" y1="6" x2="21" y2="6"></line>
+              <line x1="8" y1="12" x2="21" y2="12"></line>
+              <line x1="8" y1="18" x2="21" y2="18"></line>
+              <line x1="3" y1="6" x2="3.01" y2="6"></line>
+              <line x1="3" y1="12" x2="3.01" y2="12"></line>
+              <line x1="3" y1="18" x2="3.01" y2="18"></line>
+            </svg>
+            <span>Opportunities</span>
+          </a>
+          <a href="#experiments" class="nav-item">
+            <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 2v7.31"></path>
+              <path d="M14 9.3V2"></path>
+              <path d="M8.5 2h7"></path>
+              <path d="M14 9.3a6.5 6.5 0 1 1-4 0"></path>
+              <path d="M5.52 16h12.96"></path>
+            </svg>
+            <span>Experiments</span>
+          </a>
+          <a href="#detailPanel" class="nav-item">
+            <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <span>Audit Trail</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="system-status-card">
+            <div class="system-status-header">
+              <span class="status-pulse-dot"></span>
+              <span class="system-status-title">System Active</span>
+            </div>
+            <p class="system-status-desc">Autonomous decision pipeline & guardrail engine online.</p>
+            <div class="system-version-pill">v1.4 • Deterministic ML</div>
           </div>
         </div>
-      </header>
+      </aside>
 
-      <!-- Main Container -->
-      <main class="main-container">
-        <!-- Left: Overview & Table -->
-        <div class="left-panel">
-          <!-- Portfolio Overview Section -->
-          <section class="portfolio-overview card">
-            <div class="section-header">
-              <div>
-                <h2>Portfolio Overview</h2>
-                <p class="section-subtitle">Money-at-risk exposure and expected recovery across active promises</p>
-              </div>
-              <div class="live-pill">
-                <span class="pulse-ring"></span>
-                <span>Active Ledger Snapshot</span>
-              </div>
+      <!-- Main Content Area -->
+      <div class="app-main">
+        <!-- Top Header -->
+        <header class="top-header">
+          <div class="header-left">
+            <h1 class="page-title">Recovery Intelligence</h1>
+            <p class="page-subtitle">B2B Receivables Recovery & Risk Management Engine • Autonomous Promise Orchestration</p>
+          </div>
+
+          <div class="header-right">
+            <div class="sim-badge" title="All pipeline predictions and actions are offline simulations on synthetic data">
+              <span class="sim-dot"></span>
+              <span class="sim-text">SIMULATED DEMO • SYNTHETIC DATA</span>
             </div>
-
-            <div class="metrics-grid">
-              <div class="metric-card risk-highlight">
-                <div class="metric-icon-wrap risk">⚠️</div>
-                <div class="metric-label">Money at Risk (Outstanding)</div>
-                <div class="metric-value" id="totalOutstanding">₹ --</div>
-                <div class="metric-subtext">At promise creation • Unresolved balance</div>
-              </div>
-
-              <div class="metric-card recovery-highlight">
-                <div class="metric-icon-wrap recovery">💎</div>
-                <div class="metric-label">Expected Recovery</div>
-                <div class="metric-value" id="expectedRecovery">₹ --</div>
-                <div class="metric-subtext">Weighted by recovery probability • Simulated</div>
-              </div>
-
-              <div class="metric-card">
-                <div class="metric-icon-wrap count">📊</div>
-                <div class="metric-label">At-Risk Opportunities</div>
-                <div class="metric-value" id="atRiskCount">--</div>
-                <div class="metric-subtext">Unresolved promises requiring action</div>
-              </div>
-
-              <div class="metric-card rate-highlight">
-                <div class="metric-icon-wrap rate">🎯</div>
-                <div class="metric-label">Expected Recovery Rate</div>
-                <div class="metric-value" id="recoveryRate">--%</div>
-                <div class="metric-subtext">Expected vs. Outstanding ratio</div>
-              </div>
-            </div>
-
-            <!-- Priority Tiers Distribution -->
-            <div class="priority-distribution">
-              <div class="priority-distribution-header">
-                <h3>Priority Distribution</h3>
-                <span class="distribution-hint">Ranked by expected recovery & break severity</span>
-              </div>
-              <div class="tier-bars">
-                <div class="tier-bar high">
-                  <div class="tier-info">
-                    <span class="tier-badge-pill high">HIGH RISK</span>
-                    <span class="tier-label">High Priority</span>
-                  </div>
-                  <span class="tier-count" id="tierHigh">0</span>
-                </div>
-                <div class="tier-bar medium">
-                  <div class="tier-info">
-                    <span class="tier-badge-pill medium">MED RISK</span>
-                    <span class="tier-label">Medium Priority</span>
-                  </div>
-                  <span class="tier-count" id="tierMedium">0</span>
-                </div>
-                <div class="tier-bar low">
-                  <div class="tier-info">
-                    <span class="tier-badge-pill low">LOW RISK</span>
-                    <span class="tier-label">Low Priority</span>
-                  </div>
-                  <span class="tier-count" id="tierLow">0</span>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- Control vs AI Treatment Evaluation Section -->
-          <section class="experiment-section card">
-            <div class="section-header">
-              <div class="section-title-wrap">
-                <h2>Control vs AI Treatment Evaluation</h2>
-                <span class="badge-benchmark">SIMULATED BENCHMARK</span>
-              </div>
-              <span class="benchmark-date" id="experimentDate">Simulation Date: 2026-08-31</span>
-            </div>
-            <p class="section-subtitle">
-              Deterministic offline benchmark comparing traditional baseline recovery against Promise Ledger's AI Decision & Guardrail orchestration pipeline.
-            </p>
-
-            <!-- Experiment Financials Grid -->
-            <div class="experiment-grid">
-              <div class="exp-card control-card">
-                <div class="exp-card-header">
-                  <span class="exp-tag control-tag">CONTROL BASELINE</span>
-                  <span class="exp-meta">Historical Rate Only</span>
-                </div>
-                <div class="exp-metric-body">
-                  <div class="exp-label">Control Recovered Amount</div>
-                  <div class="exp-value" id="controlRecoveredAmount">₹ --</div>
-                  <div class="exp-sub">
-                    Recovery Rate: <strong id="controlRecoveryRate">--%</strong>
-                  </div>
-                </div>
-                <div class="exp-card-footer">
-                  <span>Calculated using customer historical recovery rate on unresolved batch</span>
-                </div>
-              </div>
-
-              <div class="exp-card treatment-card">
-                <div class="exp-card-header">
-                  <span class="exp-tag treatment-tag">AI TREATMENT PIPELINE</span>
-                  <span class="exp-meta">ML + Guardrails + Action Multipliers</span>
-                </div>
-                <div class="exp-metric-body">
-                  <div class="exp-label">AI Treatment Recovered Amount</div>
-                  <div class="exp-value" id="treatmentRecoveredAmount">₹ --</div>
-                  <div class="exp-sub">
-                    Recovery Rate: <strong id="treatmentRecoveryRate">--%</strong>
-                  </div>
-                </div>
-                <div class="exp-card-footer">
-                  <span>Simulated execution constrained by merchant safety guardrails</span>
-                </div>
-              </div>
-
-              <div class="exp-card delta-card">
-                <div class="exp-card-header">
-                  <span class="exp-tag delta-tag">INCREMENTAL IMPACT</span>
-                  <span class="exp-meta">Treatment − Control</span>
-                </div>
-                <div class="exp-metric-body">
-                  <div class="exp-label">Incremental Recovery Amount</div>
-                  <div class="exp-value" id="incrementalRecoveryAmount">₹ --</div>
-                  <div class="exp-sub">
-                    Relative Change: <strong id="treatmentImprovementPercent">--%</strong>
-                  </div>
-                </div>
-                <div class="exp-card-footer">
-                  <span>Reflects safety guardrail suppression of aggressive collections</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Guardrail Impact & Methodology Callout -->
-            <div class="guardrail-insight-box">
-              <div class="insight-icon">🛡️</div>
-              <div class="insight-content">
-                <div class="insight-title">Control vs. Treatment Methodology</div>
-                <p class="insight-text">
-                  The control estimates recovery using historical recovery behavior. Promise Ledger applies AI scoring, recovery decisions, and merchant guardrails; blocked, overridden, human-review, and stopped outcomes are not counted as automated simulated recovery.
-                </p>
-              </div>
-            </div>
-
-            <!-- Action Mix & Operational Rates -->
-            <div class="operational-rates">
-              <div class="rate-card">
-                <div class="rate-header">
-                  <span class="rate-icon">🤖</span>
-                  <span class="rate-title">Automation Rate</span>
-                </div>
-                <div class="rate-value" id="automationRate">--%</div>
-                <div class="rate-desc">Automated reminders safely executed without intervention</div>
-              </div>
-
-              <div class="rate-card">
-                <div class="rate-header">
-                  <span class="rate-icon">👥</span>
-                  <span class="rate-title">Human-Review Rate</span>
-                </div>
-                <div class="rate-value" id="humanReviewRate">--%</div>
-                <div class="rate-desc">Accounts escalated to human teams due to risk or guardrail overrides</div>
-              </div>
-
-              <div class="rate-card">
-                <div class="rate-header">
-                  <span class="rate-icon">🛑</span>
-                  <span class="rate-title">Stopped Rate</span>
-                </div>
-                <div class="rate-value" id="stoppedRate">--%</div>
-                <div class="rate-desc">Collection outreach halted to suppress active disputes</div>
-              </div>
-            </div>
-          </section>
-
-          <!-- Opportunities Table Section -->
-          <section class="opportunities-section card">
-            <div class="section-header">
-              <div>
-                <h2>At-Risk Opportunities</h2>
-                <p class="section-subtitle">Ranked by priority score, money-at-risk, and AI recovery recommendation</p>
-              </div>
-              <div class="table-legend">
-                <span class="legend-item"><span class="legend-dot allow"></span>Allow</span>
-                <span class="legend-item"><span class="legend-dot override"></span>Override</span>
-                <span class="legend-item"><span class="legend-dot block"></span>Block</span>
-              </div>
-            </div>
-
-            <div class="table-container">
-              <table class="opportunities-table">
-                <thead>
-                  <tr>
-                    <th>Rank</th>
-                    <th>Promise ID</th>
-                    <th>Customer</th>
-                    <th>Invoice ID</th>
-                    <th>Outstanding</th>
-                    <th>Expected Recovery</th>
-                    <th>Break Probability</th>
-                    <th>Credibility Score / 100</th>
-                    <th>Priority</th>
-                    <th>AI Status</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody id="opportunitiesTableBody">
-                  <tr class="loading">
-                    <td colspan="11">Loading opportunities...</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </div>
-
-        <!-- Right: Detail Panel -->
-        <aside class="right-panel">
-          <div class="detail-panel card" id="detailPanel">
-            <div class="detail-empty">
-              <div class="empty-icon">📋</div>
-              <h3>Select an Opportunity</h3>
-              <p>Click "Inspect" on any at-risk promise to review the full AI recommendation, risk features, guardrail decisions, and audit trail.</p>
+            <div class="health-indicator" id="healthIndicator">
+              <span class="status-dot" id="statusDot"></span>
+              <span id="healthStatus">Checking...</span>
             </div>
           </div>
-        </aside>
-      </main>
+        </header>
 
-      <!-- Footer -->
-      <footer class="footer">
-        <div class="footer-content">
-          <span>Promise Ledger • Razorpay AI Buildathon (Track 3 — AI Revenue Recovery)</span>
-          <span class="footer-note">Simulated demonstration platform. No live banking transactions or SMS/Email messages are dispatched.</span>
-        </div>
-      </footer>
+        <!-- Main Dashboard Container -->
+        <main class="main-container">
+          <!-- Left Panel: Metrics, Analytics, Opportunities -->
+          <div class="left-panel">
+            <!-- Portfolio Overview Section -->
+            <section class="portfolio-overview card" id="overview">
+              <div class="section-header">
+                <div>
+                  <h2 class="section-heading">Portfolio Overview</h2>
+                  <p class="section-subtitle">Money-at-risk exposure and expected recovery across active promises</p>
+                </div>
+                <div class="live-pill">
+                  <span class="pulse-ring"></span>
+                  <span>Active Ledger Snapshot</span>
+                </div>
+              </div>
+
+              <!-- KPI Metrics Grid (Glass Cards) -->
+              <div class="metrics-grid">
+                <div class="metric-card glass-card risk-card">
+                  <div class="metric-card-top">
+                    <span class="metric-label">Money at Risk (Outstanding)</span>
+                    <span class="metric-icon risk">⚠️</span>
+                  </div>
+                  <div class="metric-value" id="totalOutstanding">₹ --</div>
+                  <div class="metric-subtext">At promise creation • Unresolved balance</div>
+                </div>
+
+                <div class="metric-card glass-card recovery-card">
+                  <div class="metric-card-top">
+                    <span class="metric-label">Expected Recovery</span>
+                    <span class="metric-icon recovery">💎</span>
+                  </div>
+                  <div class="metric-value" id="expectedRecovery">₹ --</div>
+                  <div class="metric-subtext">Weighted by recovery probability • Simulated</div>
+                </div>
+
+                <div class="metric-card glass-card count-card">
+                  <div class="metric-card-top">
+                    <span class="metric-label">At-Risk Opportunities</span>
+                    <span class="metric-icon count">📊</span>
+                  </div>
+                  <div class="metric-value" id="atRiskCount">--</div>
+                  <div class="metric-subtext">Unresolved promises requiring action</div>
+                </div>
+
+                <div class="metric-card glass-card rate-card-kpi">
+                  <div class="metric-card-top">
+                    <span class="metric-label">Expected Recovery Rate</span>
+                    <span class="metric-icon rate">🎯</span>
+                  </div>
+                  <div class="metric-value" id="recoveryRate">--%</div>
+                  <div class="metric-subtext">Expected vs. Outstanding ratio</div>
+                </div>
+              </div>
+
+              <!-- Recovery Analytics & Priority Distribution Grid -->
+              <div class="analytics-row">
+                <!-- Recovery vs Exposure Visual Card -->
+                <div class="analytics-card glass-card recovery-ratio-card">
+                  <div class="analytics-card-header">
+                    <div>
+                      <h3 class="analytics-card-title">Recovery vs Money at Risk</h3>
+                      <span class="analytics-card-sub">Simulated yield against current debt exposure</span>
+                    </div>
+                    <span class="analytics-badge">Yield Analysis</span>
+                  </div>
+                  <div class="ratio-progress-container">
+                    <div class="ratio-labels">
+                      <span class="ratio-lbl">Portfolio Recovery Projection</span>
+                      <span class="ratio-val" id="recoveryYieldText">Calculated from ledger</span>
+                    </div>
+                    <div class="ratio-bar-track">
+                      <div class="ratio-bar-fill" id="recoveryYieldBar"></div>
+                    </div>
+                    <div class="ratio-legend">
+                      <div class="legend-item"><span class="legend-pip recovered"></span>Expected Recovery (Weighted)</div>
+                      <div class="legend-item"><span class="legend-pip exposure"></span>Residual Risk Gap</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Priority Tiers Distribution -->
+                <div class="priority-distribution glass-card">
+                  <div class="priority-distribution-header">
+                    <div>
+                      <h3 class="analytics-card-title">Priority Distribution</h3>
+                      <span class="distribution-hint">Ranked by expected recovery & break severity</span>
+                    </div>
+                    <span class="analytics-badge">Tiers</span>
+                  </div>
+                  <div class="tier-bars">
+                    <div class="tier-bar high">
+                      <div class="tier-info">
+                        <span class="tier-badge-pill high">HIGH RISK</span>
+                        <span class="tier-label">High Priority</span>
+                      </div>
+                      <span class="tier-count" id="tierHigh">0</span>
+                    </div>
+                    <div class="tier-bar medium">
+                      <div class="tier-info">
+                        <span class="tier-badge-pill medium">MED RISK</span>
+                        <span class="tier-label">Medium Priority</span>
+                      </div>
+                      <span class="tier-count" id="tierMedium">0</span>
+                    </div>
+                    <div class="tier-bar low">
+                      <div class="tier-info">
+                        <span class="tier-badge-pill low">LOW RISK</span>
+                        <span class="tier-label">Low Priority</span>
+                      </div>
+                      <span class="tier-count" id="tierLow">0</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Control vs AI Treatment Evaluation Section -->
+            <section class="experiment-section card" id="experiments">
+              <div class="section-header">
+                <div class="section-title-wrap">
+                  <h2 class="section-heading">Control vs AI Treatment Evaluation</h2>
+                  <span class="badge-benchmark">SIMULATED BENCHMARK</span>
+                </div>
+                <span class="benchmark-date" id="experimentDate">Simulation Date: 2026-08-31</span>
+              </div>
+              <p class="section-subtitle">
+                Deterministic offline benchmark comparing traditional baseline recovery against Promise Ledger's AI Decision & Guardrail orchestration pipeline.
+              </p>
+
+              <!-- Experiment Financials Grid -->
+              <div class="experiment-grid">
+                <div class="exp-card control-card">
+                  <div class="exp-card-header">
+                    <span class="exp-tag control-tag">CONTROL BASELINE</span>
+                    <span class="exp-meta">Historical Rate Only</span>
+                  </div>
+                  <div class="exp-metric-body">
+                    <div class="exp-label">Control Recovered Amount</div>
+                    <div class="exp-value" id="controlRecoveredAmount">₹ --</div>
+                    <div class="exp-sub">
+                      Recovery Rate: <strong id="controlRecoveryRate">--%</strong>
+                    </div>
+                  </div>
+                  <div class="exp-card-footer">
+                    <span>Calculated using customer historical recovery rate on unresolved batch</span>
+                  </div>
+                </div>
+
+                <div class="exp-card treatment-card">
+                  <div class="exp-card-header">
+                    <span class="exp-tag treatment-tag">AI TREATMENT PIPELINE</span>
+                    <span class="exp-meta">ML + Guardrails + Action Multipliers</span>
+                  </div>
+                  <div class="exp-metric-body">
+                    <div class="exp-label">AI Treatment Recovered Amount</div>
+                    <div class="exp-value" id="treatmentRecoveredAmount">₹ --</div>
+                    <div class="exp-sub">
+                      Recovery Rate: <strong id="treatmentRecoveryRate">--%</strong>
+                    </div>
+                  </div>
+                  <div class="exp-card-footer">
+                    <span>Simulated execution constrained by merchant safety guardrails</span>
+                  </div>
+                </div>
+
+                <div class="exp-card delta-card">
+                  <div class="exp-card-header">
+                    <span class="exp-tag delta-tag">INCREMENTAL IMPACT</span>
+                    <span class="exp-meta">Treatment − Control</span>
+                  </div>
+                  <div class="exp-metric-body">
+                    <div class="exp-label">Incremental Recovery Amount</div>
+                    <div class="exp-value" id="incrementalRecoveryAmount">₹ --</div>
+                    <div class="exp-sub">
+                      Relative Change: <strong id="treatmentImprovementPercent">--%</strong>
+                    </div>
+                  </div>
+                  <div class="exp-card-footer">
+                    <span>Reflects safety guardrail suppression of aggressive collections</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Guardrail Impact & Methodology Callout -->
+              <div class="guardrail-insight-box glass-card">
+                <div class="insight-icon">🛡️</div>
+                <div class="insight-content">
+                  <div class="insight-title">Control vs. Treatment Methodology</div>
+                  <p class="insight-text">
+                    The control estimates recovery using historical recovery behavior. Promise Ledger applies AI scoring, recovery decisions, and merchant guardrails; blocked, overridden, human-review, and stopped outcomes are not counted as automated simulated recovery.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Action Mix & Operational Rates -->
+              <div class="operational-rates">
+                <div class="rate-card">
+                  <div class="rate-header">
+                    <span class="rate-icon">🤖</span>
+                    <span class="rate-title">Automation Rate</span>
+                  </div>
+                  <div class="rate-value" id="automationRate">--%</div>
+                  <div class="rate-desc">Automated reminders safely executed without intervention</div>
+                </div>
+
+                <div class="rate-card">
+                  <div class="rate-header">
+                    <span class="rate-icon">👥</span>
+                    <span class="rate-title">Human-Review Rate</span>
+                  </div>
+                  <div class="rate-value" id="humanReviewRate">--%</div>
+                  <div class="rate-desc">Accounts escalated to human teams due to risk or guardrail overrides</div>
+                </div>
+
+                <div class="rate-card">
+                  <div class="rate-header">
+                    <span class="rate-icon">🛑</span>
+                    <span class="rate-title">Stopped Rate</span>
+                  </div>
+                  <div class="rate-value" id="stoppedRate">--%</div>
+                  <div class="rate-desc">Collection outreach halted to suppress active disputes</div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Opportunities Table Section -->
+            <section class="opportunities-section card" id="opportunities">
+              <div class="section-header">
+                <div>
+                  <h2 class="section-heading">At-Risk Opportunities</h2>
+                  <p class="section-subtitle">Ranked by priority score, money-at-risk, and AI recovery recommendation</p>
+                </div>
+                <div class="table-legend">
+                  <span class="legend-item"><span class="legend-dot allow"></span>Allow</span>
+                  <span class="legend-item"><span class="legend-dot override"></span>Override</span>
+                  <span class="legend-item"><span class="legend-dot block"></span>Block</span>
+                </div>
+              </div>
+
+              <div class="table-container">
+                <table class="opportunities-table">
+                  <thead>
+                    <tr>
+                      <th>Rank</th>
+                      <th>Promise ID</th>
+                      <th>Customer</th>
+                      <th>Invoice ID</th>
+                      <th>Outstanding</th>
+                      <th>Expected Recovery</th>
+                      <th>Break Probability</th>
+                      <th>Credibility Score / 100</th>
+                      <th>Priority</th>
+                      <th>AI Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="opportunitiesTableBody">
+                    <tr class="loading">
+                      <td colspan="11">Loading opportunities...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+
+          <!-- Right Panel: Opportunity Detail Inspector -->
+          <aside class="right-panel">
+            <div class="detail-panel card glass-card" id="detailPanel">
+              <div class="detail-empty">
+                <div class="empty-icon">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                  </svg>
+                </div>
+                <h3>Select an Opportunity</h3>
+                <p>Click "Inspect" on any at-risk promise to review the full AI recommendation, risk features, guardrail decisions, and audit trail.</p>
+              </div>
+            </div>
+          </aside>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+          <div class="footer-content">
+            <div class="footer-brand">
+              <strong>Promise Ledger</strong> • Autonomous Receivables Recovery & Risk Intelligence Platform
+            </div>
+            <span class="footer-note">Simulated demonstration platform. No live banking transactions or SMS/Email messages are dispatched.</span>
+          </div>
+        </footer>
+      </div>
     </div>
 
     <!-- Script imports (API client, utilities, and app logic) -->
