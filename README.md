@@ -1,9 +1,12 @@
-# Promise Ledger — AI Financial Intelligence & Risk Agent
+# Promise Ledger
 
-> **Autonomous Receivables Recovery, Cash-Flow Forecasting & Decision Support Platform**  
-> *Built for the Smart India Hackathon (SIH) FinTech Problem Statement*
+## AI Financial Intelligence & Risk Agent
 
-Promise Ledger is an AI-assisted financial intelligence and risk platform. Originally designed as an autonomous B2B receivables recovery engine that transforms post-due-date "Promises to Pay" (PTP) into risk-calibrated, policy-guarded actions, Promise Ledger has expanded into a holistic financial intelligence agent.
+Promise Ledger is an AI-powered financial intelligence and revenue recovery platform designed for B2B businesses. It connects payment-promise risk, receivables recovery, financial health, cash-flow forecasting, scenario analysis, and explainable decision support in one workflow.
+
+Built for BIT & Build.
+
+Originally designed as a B2B receivables recovery engine that transforms post-due-date "Promises to Pay" (PTP) into risk-calibrated, policy-guarded actions, Promise Ledger has expanded into a holistic financial intelligence and decision support platform.
 
 The platform continuously analyzes transaction histories, recurring vendor commitments, operational budgets, and financial goals to detect anomalies, forecast 3-month forward cash flow, simulate adverse "what-if" stress scenarios, and generate explainable financial decision-support recommendations.
 
@@ -494,4 +497,4 @@ License: Not yet specified.
 
 ## Author & Project
 
-Developed as an AI-powered financial intelligence and autonomous B2B receivables recovery agent for the Smart India Hackathon (SIH) FinTech track. Designed to empower merchant finance teams with predictive risk scoring, transparent guardrails, and decision-support intelligence.
+An AI-powered financial intelligence and revenue recovery platform for B2B businesses. Built for BIT & Build. Designed to empower merchant finance teams with predictive risk scoring, transparent guardrails, and decision-support intelligence.
