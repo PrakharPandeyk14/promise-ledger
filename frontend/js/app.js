@@ -8,6 +8,18 @@ const appState = {
     portfolio: null,
     experiment: null,
     opportunities: [],
+    financial: {
+        summary: null,
+        recurring: null,
+        anomalies: null,
+        budgets: null,
+        goals: null,
+        transactions: [],
+        activeFilter: 'ALL',
+        forecast: null,
+        recommendations: null,
+        scenario: null
+    },
     selectedPromiseId: null,
     selectedOpportunity: null,
     evaluationsByPromiseId: {},
@@ -69,7 +81,7 @@ async function checkHealth() {
 }
 
 /**
- * Load portfolio data, experiment metrics, and opportunities
+ * Load portfolio data, experiment metrics, opportunities, and financial intelligence
  */
 async function loadPortfolioData() {
     appState.isLoading = true;
@@ -77,12 +89,65 @@ async function loadPortfolioData() {
     try {
         const api = getAPIClient();
 
-        // Fetch portfolio summary, opportunities, and experiment in parallel
-        const [summary, opportunities, experiment] = await Promise.all([
+        // Fetch portfolio summary, opportunities, experiment, and financial data in parallel
+        const [
+            summary,
+            opportunities,
+            experiment,
+            finSummary,
+            finRecurring,
+            finAnomalies,
+            finBudgets,
+            finGoals,
+            finTxns,
+            finForecast,
+            finRecs,
+            finScenario
+        ] = await Promise.all([
             api.getPortfolioSummary(),
             api.getOpportunities(),
             api.getEvaluationExperiment().catch((err) => {
                 console.warn('Experiment endpoint call fallback:', err);
+                return null;
+            }),
+            api.getFinancialSummary().catch((err) => {
+                console.warn('Financial summary fallback:', err);
+                return null;
+            }),
+            api.getFinancialRecurringExpenses().catch((err) => {
+                console.warn('Financial recurring fallback:', err);
+                return null;
+            }),
+            api.getFinancialAnomalies().catch((err) => {
+                console.warn('Financial anomalies fallback:', err);
+                return null;
+            }),
+            api.getFinancialBudgets().catch((err) => {
+                console.warn('Financial budgets fallback:', err);
+                return null;
+            }),
+            api.getFinancialGoals().catch((err) => {
+                console.warn('Financial goals fallback:', err);
+                return null;
+            }),
+            api.getFinancialTransactions({ limit: 100 }).catch((err) => {
+                console.warn('Financial transactions fallback:', err);
+                return [];
+            }),
+            api.getFinancialForecast().catch((err) => {
+                console.warn('Financial forecast fallback:', err);
+                return null;
+            }),
+            api.getFinancialRecommendations().catch((err) => {
+                console.warn('Financial recommendations fallback:', err);
+                return null;
+            }),
+            api.simulateFinancialScenario({
+                receivable_delay_days: 15,
+                expense_change_percent: 10,
+                additional_monthly_expense: 20000
+            }).catch((err) => {
+                console.warn('Financial scenario fallback:', err);
                 return null;
             })
         ]);
@@ -90,13 +155,34 @@ async function loadPortfolioData() {
         appState.portfolio = summary;
         appState.opportunities = opportunities;
         appState.experiment = experiment || summary.experiment || null;
+        appState.financial.summary = finSummary;
+        appState.financial.recurring = finRecurring;
+        appState.financial.anomalies = finAnomalies;
+        appState.financial.budgets = finBudgets;
+        appState.financial.goals = finGoals;
+        appState.financial.transactions = finTxns || [];
+        appState.financial.forecast = finForecast;
+        appState.financial.recommendations = finRecs;
+        appState.financial.scenario = finScenario;
         appState.error = null;
 
-        // Render all sections
+        // Render all portfolio sections
         renderPortfolioMetrics();
         renderPriorityDistribution();
         renderExperimentMetrics();
         renderOpportunitiesTable();
+
+        // Render Financial Intelligence Layer
+        renderFinancialHealth();
+        renderFinancialBridge();
+        renderRecommendations(finRecs);
+        renderForecast(finForecast);
+        if (finScenario) renderScenarioResults(finScenario);
+        renderRecurringExpenses();
+        renderBudgets();
+        renderAnomalies();
+        renderFinancialGoals();
+        renderFinancialTransactions(appState.financial.activeFilter || 'ALL');
 
         // On initial load, select rank 1 opportunity without auto-evaluating
         if (appState.selectedPromiseId) {
@@ -750,6 +836,607 @@ function showDetailError(message) {
 }
 
 /**
+ * Render Financial Health KPIs
+ */
+function renderFinancialHealth() {
+    const f = appState.financial.summary;
+    if (!f) return;
+
+    const cashEl = document.getElementById('finCashBalance');
+    if (cashEl) cashEl.textContent = formatCurrency(f.current_cash_balance);
+
+    const incEl = document.getElementById('finMonthlyIncome');
+    if (incEl) incEl.textContent = formatCurrency(f.monthly_income);
+
+    const expEl = document.getElementById('finMonthlyExpenses');
+    if (expEl) expEl.textContent = formatCurrency(f.monthly_expenses);
+
+    const netEl = document.getElementById('finNetCashFlow');
+    if (netEl) {
+        netEl.textContent = formatCurrency(f.net_cash_flow, true);
+        netEl.style.color = f.net_cash_flow >= 0 ? 'var(--success)' : 'var(--danger)';
+    }
+
+    const recEl = document.getElementById('finTotalReceivables');
+    if (recEl) recEl.textContent = formatCurrency(f.total_receivables);
+
+    const riskEl = document.getElementById('finRiskLevel');
+    if (riskEl) {
+        const riskLevel = f.financial_risk_level || 'MEDIUM';
+        riskEl.innerHTML = `<span class="fin-risk-pill ${riskLevel.toLowerCase()}">${riskLevel}</span>`;
+    }
+
+    const scoreSub = document.getElementById('finRiskScoreSub');
+    if (scoreSub) {
+        scoreSub.textContent = `Score: ${Math.round(f.financial_risk_score || 50)} / 100`;
+    }
+}
+
+/**
+ * Render Financial Risk Contributors and Promise Ledger Bridge
+ */
+function renderFinancialBridge() {
+    const f = appState.financial.summary;
+    if (!f) return;
+
+    const listEl = document.getElementById('finRiskContributorsList');
+    if (listEl && f.risk_contributors) {
+        listEl.innerHTML = f.risk_contributors.map(c => `<li>${escapeHtml(c)}</li>`).join('');
+    }
+
+    const insightEl = document.getElementById('finReceivablesRiskInsight');
+    if (insightEl && f.receivables_risk_insight) {
+        insightEl.textContent = f.receivables_risk_insight;
+    }
+}
+
+/**
+ * Render Recurring Expenses Intelligence
+ */
+function renderRecurringExpenses() {
+    const r = appState.financial.recurring;
+    if (!r) return;
+
+    const badge = document.getElementById('finTotalRecurringBadge');
+    if (badge) badge.textContent = `${formatCurrency(r.total_monthly_recurring)} / mo`;
+
+    const tbody = document.getElementById('finRecurringTableBody');
+    if (!tbody) return;
+
+    if (!r.recurring_expenses || r.recurring_expenses.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="fin-loading">No recurring expenses detected.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = r.recurring_expenses.map(item => `
+        <tr>
+            <td><strong>${escapeHtml(item.merchant)}</strong></td>
+            <td><span class="code-pill">${escapeHtml(item.category)}</span></td>
+            <td>${escapeHtml(item.periodicity)} (${item.occurrences} mo)</td>
+            <td class="fin-amount-cell">${formatCurrency(item.amount)}</td>
+        </tr>
+    `).join('');
+}
+
+/**
+ * Render Merchant Budget Tracking
+ */
+function renderBudgets() {
+    const b = appState.financial.budgets;
+    if (!b) return;
+
+    const badge = document.getElementById('finOverallBudgetBadge');
+    if (badge) badge.textContent = `${b.overall_utilization_pct}% Spent`;
+
+    const container = document.getElementById('finBudgetsList');
+    if (!container) return;
+
+    if (!b.categories || b.categories.length === 0) {
+        container.innerHTML = '<div class="fin-loading">No budget categories defined.</div>';
+        return;
+    }
+
+    container.innerHTML = b.categories.map(cat => {
+        const utilCapped = Math.min(100, Math.max(0, cat.utilization_pct));
+        const statusClass = cat.status.toLowerCase().replace('_', '-');
+        const statusLabel = cat.status.replace('_', ' ');
+        return `
+            <div class="fin-budget-item">
+                <div class="fin-budget-row-top">
+                    <span class="fin-budget-name">${escapeHtml(cat.category)}</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="fin-budget-amounts">${formatCurrency(cat.spent)} / ${formatCurrency(cat.budget)} (${cat.utilization_pct}%)</span>
+                        <span class="status-pill ${statusClass}">${statusLabel}</span>
+                    </div>
+                </div>
+                <div class="fin-budget-track">
+                    <div class="fin-budget-fill ${statusClass}" style="width: ${utilCapped}%"></div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+/**
+ * Render Financial Anomalies
+ */
+function renderAnomalies() {
+    const a = appState.financial.anomalies;
+    if (!a) return;
+
+    const badge = document.getElementById('finAnomaliesCountBadge');
+    if (badge) badge.textContent = `${a.total_anomalies} Flagged (${a.high_severity_count} High)`;
+
+    const container = document.getElementById('finAnomaliesList');
+    if (!container) return;
+
+    if (!a.anomalies || a.anomalies.length === 0) {
+        container.innerHTML = '<div class="fin-loading">No anomalies detected in recent cycle.</div>';
+        return;
+    }
+
+    container.innerHTML = a.anomalies.map(anm => {
+        const isHigh = anm.severity === 'HIGH';
+        const sevClass = isHigh ? 'high-sev' : 'med-sev';
+        const pillClass = isHigh ? 'high' : 'medium';
+        return `
+            <div class="fin-anomaly-card ${sevClass}">
+                <div class="fin-anomaly-top">
+                    <span class="fin-anomaly-desc">${escapeHtml(anm.description)}</span>
+                    <span class="fin-anomaly-amt">${formatCurrency(anm.amount)}</span>
+                </div>
+                <div class="fin-anomaly-meta">
+                    <span class="fin-risk-pill ${pillClass}">${anm.severity} RISK</span>
+                    <span>Category: ${escapeHtml(anm.category)}</span>
+                    <span>Date: ${anm.date}</span>
+                    ${anm.deviation_percentage > 0 ? `<span style="color: var(--danger); font-weight: 700;">+${anm.deviation_percentage}% dev</span>` : ''}
+                </div>
+                <div class="fin-anomaly-reason">${escapeHtml(anm.reason)}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+/**
+ * Render Financial Goals
+ */
+function renderFinancialGoals() {
+    const g = appState.financial.goals;
+    if (!g) return;
+
+    const badge = document.getElementById('finGoalsSavedBadge');
+    if (badge) badge.textContent = `${formatCurrency(g.total_saved)} Saved`;
+
+    const container = document.getElementById('finGoalsList');
+    if (!container) return;
+
+    if (!g.goals || g.goals.length === 0) {
+        container.innerHTML = '<div class="fin-loading">No financial goals configured.</div>';
+        return;
+    }
+
+    container.innerHTML = g.goals.map(goal => {
+        const pctCapped = Math.min(100, Math.max(0, goal.progress_pct));
+        return `
+            <div class="fin-goal-item">
+                <div class="fin-goal-top">
+                    <span class="fin-goal-name">${escapeHtml(goal.name)}</span>
+                    <span class="fin-goal-amounts">${formatCurrency(goal.current_amount)} / ${formatCurrency(goal.target_amount)}</span>
+                </div>
+                <div class="fin-goal-track">
+                    <div class="fin-goal-fill" style="width: ${pctCapped}%"></div>
+                </div>
+                <div class="fin-goal-meta">
+                    <span>Target Date: ${goal.target_date}</span>
+                    <span style="font-weight: 700; color: var(--brand-primary);">${goal.progress_pct}% Funded</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+/**
+ * Filter and Render Financial Transactions
+ */
+function filterFinancialTransactions(type) {
+    appState.financial.activeFilter = type;
+    ['btnFilterAll', 'btnFilterIncome', 'btnFilterExpense'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.classList.remove('active');
+    });
+
+    const activeBtn = document.getElementById(
+        type === 'INCOME' ? 'btnFilterIncome' : type === 'EXPENSE' ? 'btnFilterExpense' : 'btnFilterAll'
+    );
+    if (activeBtn) activeBtn.classList.add('active');
+
+    renderFinancialTransactions(type);
+}
+
+function renderFinancialTransactions(type = 'ALL') {
+    const tbody = document.getElementById('finTransactionsTableBody');
+    if (!tbody) return;
+
+    let txns = appState.financial.transactions || [];
+    if (type !== 'ALL') {
+        txns = txns.filter(t => t.transaction_type === type);
+    }
+
+    if (txns.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="fin-loading">No transactions found for filter.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = txns.slice(0, 50).map(t => {
+        const isIncome = t.transaction_type === 'INCOME';
+        const badgeClass = isIncome ? 'income' : 'expense';
+        const amtSign = isIncome ? '+' : '-';
+        const amtColor = isIncome ? 'var(--success)' : 'var(--text-primary)';
+        return `
+            <tr>
+                <td style="white-space: nowrap; font-family: var(--font-mono, monospace); font-size: 12px;">${t.date}</td>
+                <td><strong>${escapeHtml(t.description)}</strong></td>
+                <td><span class="code-pill">${escapeHtml(t.category)}</span></td>
+                <td><span class="txn-type-badge ${badgeClass}">${t.transaction_type}</span></td>
+                <td class="fin-amount-cell" style="color: ${amtColor}; white-space: nowrap;">${amtSign}${formatCurrency(t.amount)}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+/**
+ * ==============================================================================
+ * Phase 2: Cash Flow Forecast, Scenario Simulation & AI Recommendations Handlers
+ * ==============================================================================
+ */
+
+/**
+ * Render 3-Month Forward Cash Flow Forecast
+ * @param {Object} forecast - Forecast response object
+ */
+function renderForecast(forecast) {
+    if (!forecast) return;
+
+    const startEl = document.getElementById('fcStartingCash');
+    if (startEl) startEl.textContent = formatCurrency(forecast.starting_cash_balance);
+
+    const incEl = document.getElementById('fcTotalIncome');
+    if (incEl) incEl.textContent = `+${formatCurrency(forecast.total_projected_income)}`;
+
+    const expEl = document.getElementById('fcTotalExpense');
+    if (expEl) expEl.textContent = `-${formatCurrency(forecast.total_projected_expenses)}`;
+
+    const netEl = document.getElementById('fcTotalNet');
+    if (netEl) {
+        netEl.textContent = formatCurrency(forecast.total_projected_net_flow, true);
+        netEl.className = `forecast-stat-val ${forecast.total_projected_net_flow >= 0 ? 'positive' : 'negative'}`;
+    }
+
+    const endEl = document.getElementById('fcEndingCash');
+    if (endEl) endEl.textContent = formatCurrency(forecast.projected_final_cash);
+
+    const confBadge = document.getElementById('forecastConfidenceBadge');
+    if (confBadge) confBadge.textContent = `Confidence: ${forecast.confidence}`;
+
+    const methEl = document.getElementById('fcMethodologyText');
+    if (methEl && forecast.receivables_integration_note) {
+        methEl.textContent = forecast.receivables_integration_note;
+    }
+
+    const grid = document.getElementById('forecastMonthsGrid');
+    if (!grid || !forecast.months) return;
+
+    grid.innerHTML = forecast.months.map(m => {
+        const total = m.projected_income + m.projected_expenses;
+        const incPct = total > 0 ? Math.round((m.projected_income / total) * 100) : 50;
+        const expPct = 100 - incPct;
+        const isNetPos = m.projected_net_cash_flow >= 0;
+
+        return `
+            <div class="forecast-month-card">
+                <div class="forecast-month-header">
+                    <span class="forecast-month-title">${escapeHtml(m.month_name)}</span>
+                    <span class="forecast-tag">Forecast</span>
+                </div>
+                <div class="forecast-metrics-list">
+                    <div class="forecast-metric-row">
+                        <span class="forecast-metric-name">Projected Income</span>
+                        <span class="forecast-metric-num income">+${formatCurrency(m.projected_income)}</span>
+                    </div>
+                    <div class="forecast-metric-row" style="font-size: 11px; padding-left: 8px;">
+                        <span class="forecast-metric-name">↳ Receivables Realization</span>
+                        <span class="forecast-metric-num" style="color: var(--brand-primary);">${formatCurrency(m.receivables_contribution)}</span>
+                    </div>
+                    <div class="forecast-metric-row">
+                        <span class="forecast-metric-name">Projected Expenses</span>
+                        <span class="forecast-metric-num expense">-${formatCurrency(m.projected_expenses)}</span>
+                    </div>
+                    <div class="forecast-metric-row" style="font-size: 11px; padding-left: 8px;">
+                        <span class="forecast-metric-name">↳ Recurring Commitment Floor</span>
+                        <span class="forecast-metric-num" style="color: var(--text-muted);">${formatCurrency(m.recurring_expense_baseline)}</span>
+                    </div>
+                    <div class="forecast-bar-wrap">
+                        <div class="forecast-bar-track" title="Income ${incPct}% vs Expense ${expPct}%">
+                            <div class="forecast-bar-inc" style="width: ${incPct}%;"></div>
+                            <div class="forecast-bar-exp" style="width: ${expPct}%;"></div>
+                        </div>
+                    </div>
+                    <div class="forecast-metric-row" style="margin-top: 4px;">
+                        <span class="forecast-metric-name">Projected Net Flow</span>
+                        <span class="forecast-metric-num ${isNetPos ? 'net-pos' : 'net-neg'}">${formatCurrency(m.projected_net_cash_flow, true)}</span>
+                    </div>
+                </div>
+                <div class="forecast-ending-box">
+                    <span class="forecast-ending-label">Ending Cash</span>
+                    <span class="forecast-ending-val">${formatCurrency(m.projected_ending_cash)}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+/**
+ * Render AI Financial Recommendations
+ * @param {Object} data - Recommendations response object
+ */
+function renderRecommendations(data) {
+    if (!data) return;
+
+    const pendingBadge = document.getElementById('recPendingBadge');
+    if (pendingBadge) {
+        pendingBadge.textContent = `${data.pending_human_approval_count} Pending Approval`;
+    }
+
+    const grid = document.getElementById('recommendationsGrid');
+    if (!grid || !data.recommendations) return;
+
+    if (data.recommendations.length === 0) {
+        grid.innerHTML = '<div class="fin-loading">No active financial recommendations at this time.</div>';
+        return;
+    }
+
+    grid.innerHTML = data.recommendations.map(r => {
+        const priClass = r.priority ? r.priority.toLowerCase() : 'medium';
+        const statusClass = (r.status || 'NEW').toLowerCase();
+        const isPending = r.status === 'NEW' || r.status === 'REVIEWED';
+
+        return `
+            <div class="rec-card priority-${priClass}" id="rec-card-${r.id}">
+                <div class="rec-header">
+                    <div class="rec-tags">
+                        <span class="rec-priority-badge ${priClass}">${r.priority} PRIORITY</span>
+                        <span class="rec-cat-badge">${escapeHtml(r.category)}</span>
+                    </div>
+                    ${r.human_approval_required ? '<span class="rec-human-badge">🔒 HUMAN APPROVAL REQUIRED</span>' : ''}
+                </div>
+                <h4 class="rec-title">${escapeHtml(r.recommendation)}</h4>
+                <p class="rec-reason">${escapeHtml(r.reason)}</p>
+                <div class="rec-evidence-box">
+                    <span class="rec-evidence-header">Supporting Evidence</span>
+                    <ul class="rec-evidence-list">
+                        ${r.supporting_evidence.map(e => `<li>${escapeHtml(e)}</li>`).join('')}
+                    </ul>
+                    <div class="rec-impact-row">
+                        <span class="rec-impact-label">Estimated Impact:</span>
+                        <span class="rec-impact-val">${escapeHtml(r.financial_impact_estimate)}</span>
+                    </div>
+                </div>
+                <div class="rec-action-callout">
+                    <strong>Suggested Action:</strong> ${escapeHtml(r.suggested_action)}
+                </div>
+                <div class="rec-footer">
+                    <span class="rec-status-indicator status-${statusClass}" id="rec-status-${r.id}">
+                        Status: ${r.status}${r.reviewed_at ? ' (Reviewed)' : ''}
+                    </span>
+                    <div class="rec-btn-group" id="rec-actions-${r.id}">
+                        ${isPending ? `
+                            <button class="rec-btn-approve" onclick="handleRecommendationReview('${r.id}', 'APPROVE')">✓ Approve</button>
+                            <button class="rec-btn-reject" onclick="handleRecommendationReview('${r.id}', 'REJECT')">✕ Reject</button>
+                        ` : `
+                            <span style="font-size: 11px; color: var(--text-muted); font-style: italic;">Decision Recorded</span>
+                        `}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+/**
+ * Handle Merchant Review/Approval of an AI Recommendation
+ * @param {string} recId - Recommendation ID
+ * @param {string} action - REVIEW, APPROVE, or REJECT
+ */
+async function handleRecommendationReview(recId, action) {
+    try {
+        const api = getAPIClient();
+        const updated = await api.reviewFinancialRecommendation(recId, {
+            action: action,
+            reviewer_notes: `Explicit human decision executed by merchant dashboard operator: ${action}`
+        });
+
+        // Update card status visually
+        const statusEl = document.getElementById(`rec-status-${recId}`);
+        if (statusEl && updated) {
+            const statusClass = updated.status.toLowerCase();
+            statusEl.className = `rec-status-indicator status-${statusClass}`;
+            statusEl.textContent = `Status: ${updated.status} (Reviewed)`;
+        }
+
+        const actionsEl = document.getElementById(`rec-actions-${recId}`);
+        if (actionsEl) {
+            actionsEl.innerHTML = `<span style="font-size: 11px; color: var(--text-muted); font-style: italic;">Decision: ${action} Recorded</span>`;
+        }
+
+        // Refresh recommendations summary
+        const refreshed = await api.getFinancialRecommendations();
+        appState.financial.recommendations = refreshed;
+        const pendingBadge = document.getElementById('recPendingBadge');
+        if (pendingBadge) {
+            pendingBadge.textContent = `${refreshed.pending_human_approval_count} Pending Approval`;
+        }
+
+    } catch (err) {
+        console.error('Error reviewing recommendation:', err);
+        alert(`Failed to update recommendation: ${err.message}`);
+    }
+}
+
+/**
+ * Update What-If Scenario Input Previews as Sliders are Moved
+ */
+function updateScenarioPreview() {
+    const delay = document.getElementById('inputDelayDays')?.value || '0';
+    const expense = document.getElementById('inputExpensePct')?.value || '0';
+    const extra = document.getElementById('inputExtraExpense')?.value || '0';
+
+    const pDelay = document.getElementById('previewDelayDays');
+    if (pDelay) pDelay.textContent = `${delay} days`;
+
+    const pExp = document.getElementById('previewExpensePct');
+    if (pExp) {
+        const val = parseFloat(expense);
+        pExp.textContent = `${val >= 0 ? '+' : ''}${val.toFixed(1)}%`;
+    }
+
+    const pExtra = document.getElementById('previewExtraExpense');
+    if (pExtra) pExtra.textContent = formatCurrency(parseFloat(extra));
+}
+
+/**
+ * Execute What-If Scenario Simulation
+ */
+async function runScenarioSimulation() {
+    const btn = document.getElementById('btnRunScenario');
+    if (btn) {
+        btn.textContent = 'Simulating…';
+        btn.disabled = true;
+    }
+
+    try {
+        const delay = parseInt(document.getElementById('inputDelayDays')?.value || '0', 10);
+        const expensePct = parseFloat(document.getElementById('inputExpensePct')?.value || '0');
+        const extraExpense = parseFloat(document.getElementById('inputExtraExpense')?.value || '0');
+
+        const api = getAPIClient();
+        const res = await api.simulateFinancialScenario({
+            receivable_delay_days: delay,
+            expense_change_percent: expensePct,
+            additional_monthly_expense: extraExpense
+        });
+
+        appState.financial.scenario = res;
+        renderScenarioResults(res);
+
+    } catch (err) {
+        console.error('Error simulating scenario:', err);
+        alert(`Simulation error: ${err.message}`);
+    } finally {
+        if (btn) {
+            btn.textContent = 'Simulate Scenario';
+            btn.disabled = false;
+        }
+    }
+}
+
+/**
+ * Reset Scenario Form to Default Base Values
+ */
+function resetScenarioForm() {
+    const inDelay = document.getElementById('inputDelayDays');
+    if (inDelay) inDelay.value = '0';
+
+    const inExp = document.getElementById('inputExpensePct');
+    if (inExp) inExp.value = '0';
+
+    const inExtra = document.getElementById('inputExtraExpense');
+    if (inExtra) inExtra.value = '0';
+
+    updateScenarioPreview();
+    runScenarioSimulation();
+}
+
+/**
+ * Render What-If Scenario Comparison Table and Explanation
+ * @param {Object} res - Scenario simulation response
+ */
+function renderScenarioResults(res) {
+    if (!res || !res.base_case || !res.scenario_case) return;
+
+    const base = res.base_case;
+    const scen = res.scenario_case;
+    const delta = res.delta || {};
+
+    // 1. Ending Cash
+    const baseCash = document.getElementById('scenBaseEndingCash');
+    if (baseCash) baseCash.textContent = formatCurrency(base.projected_ending_cash);
+
+    const simCash = document.getElementById('scenSimEndingCash');
+    if (simCash) simCash.textContent = formatCurrency(scen.projected_ending_cash);
+
+    const deltaCash = document.getElementById('scenDeltaEndingCash');
+    if (deltaCash) {
+        const d = delta.projected_ending_cash || 0;
+        deltaCash.textContent = `${d >= 0 ? '+' : ''}${formatCurrency(d)}`;
+        deltaCash.className = `col-delta ${d < 0 ? 'delta-neg' : d > 0 ? 'delta-pos' : 'delta-neutral'}`;
+    }
+
+    // 2. Net Cash Flow
+    const baseNet = document.getElementById('scenBaseNetFlow');
+    if (baseNet) baseNet.textContent = formatCurrency(base.total_net_cash_flow, true);
+
+    const simNet = document.getElementById('scenSimNetFlow');
+    if (simNet) simNet.textContent = formatCurrency(scen.total_net_cash_flow, true);
+
+    const deltaNet = document.getElementById('scenDeltaNetFlow');
+    if (deltaNet) {
+        const d = delta.total_net_cash_flow || 0;
+        deltaNet.textContent = `${d >= 0 ? '+' : ''}${formatCurrency(d)}`;
+        deltaNet.className = `col-delta ${d < 0 ? 'delta-neg' : d > 0 ? 'delta-pos' : 'delta-neutral'}`;
+    }
+
+    // 3. Cash Runway
+    const baseRun = document.getElementById('scenBaseRunway');
+    if (baseRun) baseRun.textContent = `${base.cash_runway_months} mo`;
+
+    const simRun = document.getElementById('scenSimRunway');
+    if (simRun) simRun.textContent = `${scen.cash_runway_months} mo`;
+
+    const deltaRun = document.getElementById('scenDeltaRunway');
+    if (deltaRun) {
+        const d = delta.cash_runway_months || 0;
+        deltaRun.textContent = `${d >= 0 ? '+' : ''}${d.toFixed(1)} mo`;
+        deltaRun.className = `col-delta ${d < 0 ? 'delta-neg' : d > 0 ? 'delta-pos' : 'delta-neutral'}`;
+    }
+
+    // 4. Financial Risk Level
+    const baseRisk = document.getElementById('scenBaseRisk');
+    if (baseRisk) baseRisk.textContent = `${base.financial_risk_level} (${Math.round(base.risk_score)}/100)`;
+
+    const simRisk = document.getElementById('scenSimRisk');
+    if (simRisk) simRisk.textContent = `${scen.financial_risk_level} (${Math.round(scen.risk_score)}/100)`;
+
+    const deltaRisk = document.getElementById('scenDeltaRisk');
+    if (deltaRisk) {
+        const d = delta.risk_score || 0;
+        deltaRisk.textContent = `${d > 0 ? '+' : ''}${Math.round(d)} pts`;
+        deltaRisk.className = `col-delta ${d > 0 ? 'delta-neg' : d < 0 ? 'delta-pos' : 'delta-neutral'}`;
+    }
+
+    // Risk delta badge
+    const riskBadge = document.getElementById('scenarioRiskDeltaBadge');
+    if (riskBadge) {
+        riskBadge.textContent = `Risk: ${base.financial_risk_level} → ${scen.financial_risk_level}`;
+    }
+
+    // Explanation callout
+    const expText = document.getElementById('scenarioExplanationText');
+    if (expText && res.explanation) {
+        expText.textContent = res.explanation;
+    }
+}
+
+/**
  * Set up event listeners
  */
 function setupEventListeners() {
@@ -759,6 +1446,15 @@ function setupEventListeners() {
             e.preventDefault();
             loadPortfolioData();
         }
+    });
+
+    // Sidebar navigation active state handler
+    const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
+    navItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            navItems.forEach(n => n.classList.remove('active'));
+            item.classList.add('active');
+        });
     });
 }
 

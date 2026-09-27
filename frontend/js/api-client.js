@@ -96,6 +96,101 @@ class PromiseLedgerAPI {
             method: 'POST'
         });
     }
+
+    /**
+     * GET /financial/summary - Get financial health overview metrics
+     * @returns {Promise<Object>} Financial health summary
+     */
+    async getFinancialSummary() {
+        return this._request('/financial/summary');
+    }
+
+    /**
+     * GET /financial/transactions - Get financial transaction history
+     * @param {Object} params - Query params (type, category, limit)
+     * @returns {Promise<Array>} List of transactions
+     */
+    async getFinancialTransactions(params = {}) {
+        const query = new URLSearchParams();
+        if (params.type) query.set('type', params.type);
+        if (params.category) query.set('category', params.category);
+        if (params.limit) query.set('limit', params.limit);
+        const qs = query.toString() ? `?${query.toString()}` : '';
+        return this._request(`/financial/transactions${qs}`);
+    }
+
+    /**
+     * GET /financial/recurring-expenses - Get recurring expense intelligence
+     * @returns {Promise<Object>} Recurring expenses response
+     */
+    async getFinancialRecurringExpenses() {
+        return this._request('/financial/recurring-expenses');
+    }
+
+    /**
+     * GET /financial/anomalies - Get detected financial anomalies
+     * @returns {Promise<Object>} Financial anomalies response
+     */
+    async getFinancialAnomalies() {
+        return this._request('/financial/anomalies');
+    }
+
+    /**
+     * GET /financial/budgets - Get budget tracking and utilization
+     * @returns {Promise<Object>} Budgets response
+     */
+    async getFinancialBudgets() {
+        return this._request('/financial/budgets');
+    }
+
+    /**
+     * GET /financial/goals - Get financial goals progress
+     * @returns {Promise<Object>} Financial goals response
+     */
+    async getFinancialGoals() {
+        return this._request('/financial/goals');
+    }
+
+    /**
+     * GET /financial/forecast - Get 3-month cash flow forecast
+     * @returns {Promise<Object>} Cash flow forecast response
+     */
+    async getFinancialForecast() {
+        return this._request('/financial/forecast');
+    }
+
+    /**
+     * POST /financial/scenario - Simulate financial what-if scenario
+     * @param {Object} payload - Scenario parameters (receivable_delay_days, expense_change_percent, additional_monthly_expense)
+     * @returns {Promise<Object>} Scenario simulation response with base, scenario, and delta
+     */
+    async simulateFinancialScenario(payload) {
+        return this._request('/financial/scenario', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+    }
+
+    /**
+     * GET /financial/recommendations - Get AI financial decision-support recommendations
+     * @returns {Promise<Object>} Recommendations response
+     */
+    async getFinancialRecommendations() {
+        return this._request('/financial/recommendations');
+    }
+
+    /**
+     * POST /financial/recommendations/{id}/review - Review/acknowledge AI recommendation
+     * @param {string} id - Recommendation ID
+     * @param {Object} payload - Review action (action: REVIEW | APPROVE | REJECT, reviewer_notes)
+     * @returns {Promise<Object>} Updated recommendation item
+     */
+    async reviewFinancialRecommendation(id, payload) {
+        return this._request(`/financial/recommendations/${id}/review`, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+    }
 }
 
 /**

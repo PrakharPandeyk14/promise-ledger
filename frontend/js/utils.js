@@ -215,6 +215,21 @@ function formatSignedPercentage(value) {
 }
 
 /**
+ * Escape HTML to prevent XSS
+ * @param {string} str - Raw string
+ * @returns {string} Escaped string
+ */
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+/**
  * Export functions for testing
  */
 if (typeof module !== 'undefined' && module.exports) {
@@ -233,6 +248,7 @@ if (typeof module !== 'undefined' && module.exports) {
         isValidPromiseId,
         getActionLabel,
         getGuardrailBadgeClass,
-        formatSignedPercentage
+        formatSignedPercentage,
+        escapeHtml
     };
 }

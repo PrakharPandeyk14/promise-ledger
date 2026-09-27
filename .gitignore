@@ -1,8 +1,61 @@
+# Byte-compiled / optimized / DLL files
 __pycache__/
-.pytest_cache/
 *.py[cod]
+*$py.class
 *.pyc
+
+# Virtual environments
 .venv/
+venv/
+ENV/
+env/
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+.hypothesis/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Database and SQLite runtime files
 data/*.db
+*.sqlite3
+*.db-journal
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+
+# Operating System files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# Logs and runtime dumps
+*.log
+logs/
+.system_generated/
+
+# Backups and temporary files
 .git.broken-backup/
+*.bak
+*.tmp
+
+# Local step reports and intermediate artifacts
+DAY5_*
+API_FINALIZATION_REPORT.md
+DELIVERABLES.md
+validate_api.py
 

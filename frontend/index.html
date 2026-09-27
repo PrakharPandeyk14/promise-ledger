@@ -53,6 +53,33 @@
             </svg>
             <span>Opportunities</span>
           </a>
+          <a href="#financial" class="nav-item" id="navFinancial">
+            <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="1" x2="12" y2="23"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            <span>Financial Health</span>
+          </a>
+          <a href="#recommendations" class="nav-item" id="navRecommendations">
+            <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+            </svg>
+            <span>AI Recommendations</span>
+          </a>
+          <a href="#forecast" class="nav-item" id="navForecast">
+            <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+              <polyline points="17 6 23 6 23 12"></polyline>
+            </svg>
+            <span>Cash Flow Forecast</span>
+          </a>
+          <a href="#scenarios" class="nav-item" id="navScenarios">
+            <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 3v18h18"></path>
+              <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path>
+            </svg>
+            <span>Scenario Simulator</span>
+          </a>
           <a href="#experiments" class="nav-item">
             <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M10 2v7.31"></path>
@@ -82,7 +109,7 @@
               <span class="system-status-title">System Active</span>
             </div>
             <p class="system-status-desc">Autonomous decision pipeline & guardrail engine online.</p>
-            <div class="system-version-pill">v1.4 • Deterministic ML</div>
+            <div class="system-version-pill">v2.0 • AI Financial Agent</div>
           </div>
         </div>
       </aside>
@@ -92,8 +119,8 @@
         <!-- Top Header -->
         <header class="top-header">
           <div class="header-left">
-            <h1 class="page-title">Recovery Intelligence</h1>
-            <p class="page-subtitle">B2B Receivables Recovery & Risk Management Engine • Autonomous Promise Orchestration</p>
+            <h1 class="page-title">Promise Ledger — AI Financial Intelligence &amp; Risk Agent</h1>
+            <p class="page-subtitle">Receivables Recovery, 3-Month Cash Flow Forecasting &amp; What-If Scenario Decision Support</p>
           </div>
 
           <div class="header-right">
@@ -222,6 +249,399 @@
                       <span class="tier-count" id="tierLow">0</span>
                     </div>
                   </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Financial Intelligence & Risk Layer Section -->
+            <section class="financial-section card" id="financial">
+              <div class="section-header">
+                <div>
+                  <div class="section-title-wrap">
+                    <h2 class="section-heading">Financial Health &amp; Intelligence</h2>
+                    <span class="badge-benchmark">SYNTHETIC DEMO DATA</span>
+                  </div>
+                  <p class="section-subtitle">
+                    Holistic cash flow, recurring expense commitments, budget tracking &amp; anomaly intelligence bridging directly with Promise Ledger risk.
+                  </p>
+                </div>
+                <div class="live-pill">
+                  <span class="pulse-ring"></span>
+                  <span>August 2026 Simulation</span>
+                </div>
+              </div>
+
+              <!-- Top: Financial Health KPIs (6 Cards) -->
+              <div class="financial-health-grid">
+                <div class="metric-card glass-card">
+                  <div class="metric-card-top">
+                    <span class="metric-label">Current Cash Balance</span>
+                    <span class="metric-icon">💰</span>
+                  </div>
+                  <div class="metric-value" id="finCashBalance">₹ --</div>
+                  <div class="metric-subtext">Operating liquid reserve</div>
+                </div>
+
+                <div class="metric-card glass-card">
+                  <div class="metric-card-top">
+                    <span class="metric-label">Monthly Income</span>
+                    <span class="metric-icon" style="color: var(--success);">📈</span>
+                  </div>
+                  <div class="metric-value" id="finMonthlyIncome">₹ --</div>
+                  <div class="metric-subtext">Invoice collections + SaaS sales</div>
+                </div>
+
+                <div class="metric-card glass-card">
+                  <div class="metric-card-top">
+                    <span class="metric-label">Monthly Expenses</span>
+                    <span class="metric-icon" style="color: var(--warning);">📉</span>
+                  </div>
+                  <div class="metric-value" id="finMonthlyExpenses">₹ --</div>
+                  <div class="metric-subtext">Payroll, rent, software &amp; ops</div>
+                </div>
+
+                <div class="metric-card glass-card">
+                  <div class="metric-card-top">
+                    <span class="metric-label">Net Cash Flow</span>
+                    <span class="metric-icon">⚖️</span>
+                  </div>
+                  <div class="metric-value" id="finNetCashFlow">--</div>
+                  <div class="metric-subtext">Operating margin for cycle</div>
+                </div>
+
+                <div class="metric-card glass-card">
+                  <div class="metric-card-top">
+                    <span class="metric-label">Total Receivables</span>
+                    <span class="metric-icon">📑</span>
+                  </div>
+                  <div class="metric-value" id="finTotalReceivables">₹ --</div>
+                  <div class="metric-subtext">Active at-risk debtor ledger</div>
+                </div>
+
+                <div class="metric-card glass-card" id="finRiskLevelCard">
+                  <div class="metric-card-top">
+                    <span class="metric-label">Financial Risk Level</span>
+                    <span class="metric-icon">🛡️</span>
+                  </div>
+                  <div class="metric-value" id="finRiskLevel">--</div>
+                  <div class="metric-subtext" id="finRiskScoreSub">Score: -- / 100</div>
+                </div>
+              </div>
+
+              <!-- Explainable Risk Contributors & Receivables Bridge -->
+              <div class="fin-bridge-row">
+                <!-- Explainable Contributors -->
+                <div class="fin-bridge-card glass-card">
+                  <div class="fin-bridge-header">
+                    <span class="fin-bridge-icon">🔍</span>
+                    <h3 class="fin-bridge-title">Financial Risk Factor Contributors</h3>
+                  </div>
+                  <ul class="fin-contributors-list" id="finRiskContributorsList">
+                    <li>Loading risk contributors...</li>
+                  </ul>
+                </div>
+
+                <!-- Promise Ledger Connection Callout -->
+                <div class="fin-bridge-card glass-card bridge-highlight">
+                  <div class="fin-bridge-header">
+                    <span class="fin-bridge-icon">⚡</span>
+                    <h3 class="fin-bridge-title">Promise Ledger Receivables Risk Connection</h3>
+                  </div>
+                  <p class="fin-bridge-text" id="finReceivablesRiskInsight">
+                    Connecting to Promise Ledger risk engine...
+                  </p>
+                  <div class="fin-bridge-footer">
+                    <span>Direct ML link: Break probability ≥ 40% accounts directly elevate cash-flow stress</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ========================================================= -->
+              <!-- Phase 2: AI Financial Recommendations Section            -->
+              <!-- ========================================================= -->
+              <div class="fin-recommendations-section" id="recommendations" style="margin-top: 24px;">
+                <div class="fin-block-header" style="margin-bottom: 12px;">
+                  <div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                      <h3 class="fin-block-title">AI Financial Recommendations</h3>
+                      <span class="badge-pending" id="recPendingBadge">-- Pending Approval</span>
+                    </div>
+                    <span class="fin-block-sub">Deterministic Decision Support: AI recommends, Merchant decides. High-impact financial decisions require human review.</span>
+                  </div>
+                  <div class="sim-badge" title="AI recommends; merchant approves or rejects">
+                    <span>HUMAN-IN-THE-LOOP</span>
+                  </div>
+                </div>
+
+                <div class="recommendations-grid" id="recommendationsGrid">
+                  <div class="fin-loading">Generating AI financial decision support recommendations...</div>
+                </div>
+              </div>
+
+              <!-- ========================================================= -->
+              <!-- Phase 2: Cash Flow Forecast Section                      -->
+              <!-- ========================================================= -->
+              <div class="fin-forecast-section" id="forecast" style="margin-top: 28px;">
+                <div class="fin-block-header" style="margin-bottom: 12px;">
+                  <div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                      <h3 class="fin-block-title">3-Month Cash Flow Forecast</h3>
+                      <span class="fin-badge-highlight" id="forecastConfidenceBadge">Confidence: MEDIUM</span>
+                    </div>
+                    <span class="fin-block-sub">Rolling trend projection integrating recurring revenue baseline, ₹1.19L/mo recurring expense floor, and Promise Ledger ML expected recovery.</span>
+                  </div>
+                  <div class="live-pill">
+                    <span class="pulse-ring"></span>
+                    <span>Sep – Nov 2026</span>
+                  </div>
+                </div>
+
+                <!-- Forecast Summary Key Stats -->
+                <div class="forecast-summary-bar">
+                  <div class="forecast-stat-item">
+                    <span class="forecast-stat-label">Starting Cash</span>
+                    <span class="forecast-stat-val" id="fcStartingCash">₹ --</span>
+                  </div>
+                  <div class="forecast-stat-item">
+                    <span class="forecast-stat-label">Projected Inflow (3 Mo)</span>
+                    <span class="forecast-stat-val positive" id="fcTotalIncome">₹ --</span>
+                  </div>
+                  <div class="forecast-stat-item">
+                    <span class="forecast-stat-label">Projected Outflow (3 Mo)</span>
+                    <span class="forecast-stat-val negative" id="fcTotalExpense">₹ --</span>
+                  </div>
+                  <div class="forecast-stat-item">
+                    <span class="forecast-stat-label">Net Cash Flow (3 Mo)</span>
+                    <span class="forecast-stat-val positive" id="fcTotalNet">--</span>
+                  </div>
+                  <div class="forecast-stat-item">
+                    <span class="forecast-stat-label">Ending Cash Balance</span>
+                    <span class="forecast-stat-val" id="fcEndingCash" style="color: var(--brand-primary-dark);">₹ --</span>
+                  </div>
+                </div>
+
+                <!-- 3 Monthly Cards Grid -->
+                <div class="forecast-grid" id="forecastMonthsGrid">
+                  <div class="fin-loading">Computing deterministic cash flow projection...</div>
+                </div>
+
+                <!-- Receivables Integration Insight Callout -->
+                <div class="guardrail-insight-box glass-card" style="margin-top: 12px;">
+                  <div class="insight-icon">🎯</div>
+                  <div class="insight-content">
+                    <div class="insight-title">Receivables Expected Recovery Integration</div>
+                    <p class="insight-text" id="fcMethodologyText">
+                      Unlike naive models that assume 100% receivables realization (₹30,528.70), Promise Ledger's forecast integrates Random Forest break probability and expected recovery (₹14,731.96 phased 50/30/20% over 3 months) to avoid inflated liquidity forecasts.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ========================================================= -->
+              <!-- Phase 2: What-If Scenario Simulator Section              -->
+              <!-- ========================================================= -->
+              <div class="fin-scenario-section" id="scenarios" style="margin-top: 28px;">
+                <div class="fin-block-header" style="margin-bottom: 12px;">
+                  <div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                      <h3 class="fin-block-title">What-If Financial Scenario Simulator</h3>
+                      <span class="badge-benchmark">PURE OFFLINE SIMULATION</span>
+                    </div>
+                    <span class="fin-block-sub">Simulate stress scenarios: receivables delays, operating expense inflation, or extra fixed expenditure. Modifies zero database records.</span>
+                  </div>
+                </div>
+
+                <div class="scenario-panel">
+                  <!-- Left: Interactive Controls -->
+                  <div class="scenario-controls-box glass-card">
+                    <h4 style="font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">Scenario Assumptions</h4>
+                    
+                    <div class="scenario-control-group">
+                      <div class="scenario-control-label">
+                        <span>Receivable Collection Delay</span>
+                        <span class="scenario-control-val-preview" id="previewDelayDays">15 days</span>
+                      </div>
+                      <input type="range" class="scenario-range" id="inputDelayDays" min="0" max="90" step="5" value="15" oninput="updateScenarioPreview()">
+                      <span class="scenario-hint">Shifts expected recovery cash receipts across forecast months</span>
+                    </div>
+
+                    <div class="scenario-control-group">
+                      <div class="scenario-control-label">
+                        <span>Operating Expense Change</span>
+                        <span class="scenario-control-val-preview" id="previewExpensePct">+10.0%</span>
+                      </div>
+                      <input type="range" class="scenario-range" id="inputExpensePct" min="-30" max="50" step="2" value="10" oninput="updateScenarioPreview()">
+                      <span class="scenario-hint">Scales monthly operating expense run-rate</span>
+                    </div>
+
+                    <div class="scenario-control-group">
+                      <div class="scenario-control-label">
+                        <span>Additional Monthly Expense</span>
+                        <span class="scenario-control-val-preview" id="previewExtraExpense">₹20,000</span>
+                      </div>
+                      <input type="number" class="scenario-input" id="inputExtraExpense" min="0" max="200000" step="5000" value="20000" oninput="updateScenarioPreview()">
+                      <span class="scenario-hint">New fixed burn (e.g. emergency hardware, unplanned retainer)</span>
+                    </div>
+
+                    <div class="scenario-actions-bar">
+                      <button class="btn-simulate" id="btnRunScenario" onclick="runScenarioSimulation()">Simulate Scenario</button>
+                      <button class="btn-reset" onclick="resetScenarioForm()">Reset</button>
+                    </div>
+                  </div>
+
+                  <!-- Right: Dynamic Results & Delta Comparison -->
+                  <div class="scenario-results-box glass-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <h4 style="font-size: 14px; font-weight: 700; color: var(--text-primary);">Base Case vs. Simulated Scenario</h4>
+                      <span class="fin-badge-highlight" id="scenarioRiskDeltaBadge">Risk: MEDIUM → HIGH</span>
+                    </div>
+
+                    <table class="scenario-comparison-table">
+                      <thead>
+                        <tr>
+                          <th>Financial Metric</th>
+                          <th>Base Case</th>
+                          <th>Scenario</th>
+                          <th>Net Delta</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td class="col-metric">3-Mo Ending Cash</td>
+                          <td class="col-base" id="scenBaseEndingCash">₹ 6,87,126</td>
+                          <td class="col-scenario" id="scenSimEndingCash">₹ 5,42,334</td>
+                          <td class="col-delta delta-neg" id="scenDeltaEndingCash">-₹ 1,44,792</td>
+                        </tr>
+                        <tr>
+                          <td class="col-metric">3-Mo Net Cash Flow</td>
+                          <td class="col-base" id="scenBaseNetFlow">+₹ 1,60,014</td>
+                          <td class="col-scenario" id="scenSimNetFlow">+₹ 15,222</td>
+                          <td class="col-delta delta-neg" id="scenDeltaNetFlow">-₹ 1,44,792</td>
+                        </tr>
+                        <tr>
+                          <td class="col-metric">Cash Runway</td>
+                          <td class="col-base" id="scenBaseRunway">3.9 months</td>
+                          <td class="col-scenario" id="scenSimRunway">2.8 months</td>
+                          <td class="col-delta delta-neg" id="scenDeltaRunway">-1.1 mo</td>
+                        </tr>
+                        <tr>
+                          <td class="col-metric">Financial Risk Level</td>
+                          <td class="col-base" id="scenBaseRisk">MEDIUM (48/100)</td>
+                          <td class="col-scenario" id="scenSimRisk">HIGH (68/100)</td>
+                          <td class="col-delta delta-neg" id="scenDeltaRisk">+20 pts</td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                    <div class="scenario-explanation-card" id="scenarioExplanationText">
+                      Loading dynamic scenario impact explanation...
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Middle: Recurring Expenses & Budget Utilization Grid -->
+              <div class="fin-two-col-grid">
+                <!-- Recurring Expense Intelligence -->
+                <div class="fin-block-card glass-card">
+                  <div class="fin-block-header">
+                    <div>
+                      <h3 class="fin-block-title">Recurring Expenses Intelligence</h3>
+                      <span class="fin-block-sub">Deterministic vendor commitment detection</span>
+                    </div>
+                    <div class="fin-badge-highlight" id="finTotalRecurringBadge">₹ -- / mo</div>
+                  </div>
+                  <div class="fin-recurring-table-wrap">
+                    <table class="fin-mini-table">
+                      <thead>
+                        <tr>
+                          <th>Merchant / Vendor</th>
+                          <th>Category</th>
+                          <th>Periodicity</th>
+                          <th>Monthly Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody id="finRecurringTableBody">
+                        <tr><td colspan="4">Loading recurring expenses...</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Budget Tracking -->
+                <div class="fin-block-card glass-card">
+                  <div class="fin-block-header">
+                    <div>
+                      <h3 class="fin-block-title">Merchant Budget Tracking</h3>
+                      <span class="fin-block-sub">Actual cycle spend vs category limits</span>
+                    </div>
+                    <div class="fin-badge-highlight" id="finOverallBudgetBadge">--% Spent</div>
+                  </div>
+                  <div class="fin-budgets-list" id="finBudgetsList">
+                    <div class="fin-loading">Loading budget tracking...</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Lower: Financial Anomalies & Financial Goals Grid -->
+              <div class="fin-two-col-grid">
+                <!-- Financial Anomaly Detection -->
+                <div class="fin-block-card glass-card">
+                  <div class="fin-block-header">
+                    <div>
+                      <h3 class="fin-block-title">Financial Anomaly Detection</h3>
+                      <span class="fin-block-sub">Statistical deviations, compute spikes &amp; duplicates</span>
+                    </div>
+                    <div class="fin-badge-warn" id="finAnomaliesCountBadge">-- Flagged</div>
+                  </div>
+                  <div class="fin-anomalies-list" id="finAnomaliesList">
+                    <div class="fin-loading">Analyzing transactions for anomalies...</div>
+                  </div>
+                </div>
+
+                <!-- Financial Goals -->
+                <div class="fin-block-card glass-card">
+                  <div class="fin-block-header">
+                    <div>
+                      <h3 class="fin-block-title">Financial Goals Progress</h3>
+                      <span class="fin-block-sub">Target reserves &amp; capital allocations</span>
+                    </div>
+                    <div class="fin-badge-highlight" id="finGoalsSavedBadge">₹ -- Saved</div>
+                  </div>
+                  <div class="fin-goals-list" id="finGoalsList">
+                    <div class="fin-loading">Loading financial goals...</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bottom: Financial Transactions View -->
+              <div class="fin-txns-card glass-card">
+                <div class="fin-txns-header">
+                  <div>
+                    <h3 class="fin-block-title">Financial Transactions History</h3>
+                    <span class="fin-block-sub">Integrated ledger: Customer invoice payments, sales contracts &amp; operational expenses</span>
+                  </div>
+                  <div class="fin-filter-tabs">
+                    <button class="fin-filter-btn active" id="btnFilterAll" onclick="filterFinancialTransactions('ALL')">All</button>
+                    <button class="fin-filter-btn" id="btnFilterIncome" onclick="filterFinancialTransactions('INCOME')">Income</button>
+                    <button class="fin-filter-btn" id="btnFilterExpense" onclick="filterFinancialTransactions('EXPENSE')">Expense</button>
+                  </div>
+                </div>
+                <div class="fin-txns-table-wrap">
+                  <table class="fin-txns-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody id="finTransactionsTableBody">
+                      <tr><td colspan="5">Loading financial transactions...</td></tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </section>

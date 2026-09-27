@@ -18,6 +18,21 @@ from .models import (
     PortfolioSummaryResponse,
 )
 from .service import PromiseLedgerService
+from promise_ledger.financial import FinancialService
+from promise_ledger.financial.models import (
+    AnomaliesResponse,
+    BudgetsResponse,
+    FinancialGoalsResponse,
+    FinancialRecommendationItem,
+    FinancialSummaryResponse,
+    FinancialTransaction,
+    ForecastResponse,
+    RecommendationReviewRequest,
+    RecommendationsResponse,
+    RecurringExpensesResponse,
+    ScenarioRequest,
+    ScenarioResponse,
+)
 
 
 def _opportunity_response(
@@ -153,6 +168,62 @@ def create_app(database_path: Path = DATABASE_PATH) -> FastAPI:
             priority_tier=opportunity.priority_tier,
             audit=audit,
         )
+
+    fin_service = FinancialService(database_path=database_path, promise_service=service)
+
+    @api.get("/financial/summary", response_model=FinancialSummaryResponse)
+    def financial_summary() -> FinancialSummaryResponse:
+        return fin_service.get_summary()
+
+    @api.get("/financial/transactions", response_model=list[FinancialTransaction])
+    def financial_transactions(
+        type: str | None = None,
+        category: str | None = None,
+        limit: int = 100,
+    ) -> list[FinancialTransaction]:
+        return fin_service.get_transactions(transaction_type=type, category=category, limit=limit)
+
+    @api.get("/financial/recurring-expenses", response_model=RecurringExpensesResponse)
+    def financial_recurring_expenses() -> RecurringExpensesResponse:
+        return fin_service.get_recurring_expenses()
+
+    @api.get("/financial/anomalies", response_model=AnomaliesResponse)
+    def financial_anomalies() -> AnomaliesResponse:
+        return fin_service.get_anomalies()
+
+    @api.get("/financial/budgets", response_model=BudgetsResponse)
+    def financial_budgets() -> BudgetsResponse:
+        return fin_service.get_budgets()
+
+    @api.get("/financial/goals", response_model=FinancialGoalsResponse)
+    def financial_goals() -> FinancialGoalsResponse:
+        return fin_service.get_goals()
+
+    @api.get("/financial/forecast", response_model=ForecastResponse)
+    def financial_forecast() -> ForecastResponse:
+        return fin_service.get_forecast()
+
+    @api.post("/financial/scenario", response_model=ScenarioResponse)
+    def financial_scenario(request: ScenarioRequest) -> ScenarioResponse:
+        return fin_service.simulate_scenario(request)
+
+    @api.get("/financial/recommendations", response_model=RecommendationsResponse)
+    def financial_recommendations() -> RecommendationsResponse:
+        return fin_service.get_recommendations()
+
+    @api.post("/financial/recommendations/{recommendation_id}/review", response_model=FinancialRecommendationItem)
+    def review_financial_recommendation(
+        recommendation_id: str,
+        review: RecommendationReviewRequest,
+    ) -> FinancialRecommendationItem:
+        updated = fin_service.review_recommendation(
+            recommendation_id=recommendation_id,
+            action=review.action,
+            reviewer_notes=review.reviewer_notes,
+        )
+        if updated is None:
+            raise HTTPException(status_code=404, detail="Financial recommendation not found")
+        return updated
 
     frontend_path = Path(__file__).resolve().parents[3] / "frontend"
     api.mount("/", StaticFiles(directory=frontend_path, html=True), name="frontend")
